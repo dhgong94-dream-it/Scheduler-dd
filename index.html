@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>My Workspace</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+
+<style>
+:root {
+  --bg: #0f0f13;
+  --bg2: #16161d;
+  --bg3: #1e1e28;
+  --bg4: #252533;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #e8e8f0;
+  --text2: #9090a8;
+  --text3: #5a5a72;
+  --accent: #7c6af7;
+  --accent2: #5a4de0;
+  --accent-soft: rgba(124,106,247,0.15);
+  --green: #3ecf8e;
+  --green-soft: rgba(62,207,142,0.12);
+  --red: #f26b6b;
+  --red-soft: rgba(242,107,107,0.12);
+  --amber: #f5a623;
+  --amber-soft: rgba(245,166,35,0.12);
+  --radius: 10px;
+  --radius-lg: 14px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.5);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── LOGIN ── */
+#login-screen {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: var(--bg);
+  z-index: 1000;
+  gap: 2rem;
+}
+
+.login-logo {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #7c6af7, #5de0c5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.login-sub {
+  font-size: 0.95rem;
+  color: var(--text2);
+  margin-top: -1.5rem;
+}
+
+.google-btn {
+  display: flex; align-items: center; gap: 12px;
+  background: #fff; color: #333;
+  border: none; border-radius: var(--radius);
+  padding: 13px 24px;
+  font-size: 0.95rem; font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.google-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.4); }
+
+.google-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+/* ── APP LAYOUT ── */
+#app { display: none; min-height: 100vh; }
+
+/* ── TOP NAV ── */
+.topnav {
+  position: sticky; top: 0; z-index: 200;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  height: 56px;
+  display: flex; align-items: center; gap: 16px;
+}
+
+.nav-brand {
+  font-weight: 700; font-size: 1rem;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  margin-right: auto;
+}
+
+.nav-tabs {
+  display: flex; gap: 4px;
+}
+
+.nav-tab {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: none; background: transparent;
+  color: var(--text2); font-size: 0.85rem;
+  cursor: pointer; transition: all 0.15s;
+}
+.nav-tab:hover { background: var(--bg3); color: var(--text); }
+.nav-tab.active { background: var(--accent-soft); color: var(--accent); }
+
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent-soft);
+  border: 1.5px solid var(--accent);
+  cursor: pointer; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 600; color: var(--accent);
+}
+.user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ── MAIN CONTENT ── */
+.main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── CALENDAR PAGE ── */
+.calendar-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+}
+
+/* ── SIDEBAR ── */
+.sidebar-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+}
+
+.panel-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 14px;
+}
+
+/* Mini Calendar */
+.mini-cal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.mini-cal-nav {
+  background: none; border: none; color: var(--text2);
+  font-size: 1.1rem; cursor: pointer; padding: 4px;
+  border-radius: 6px; transition: background 0.15s;
+}
+.mini-cal-nav:hover { background: var(--bg3); }
+.mini-cal-month { font-size: 0.9rem; font-weight: 600; }
+
+.mini-cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 2px; text-align: center;
+}
+.mini-cal-dow {
+  font-size: 0.7rem; color: var(--text3);
+  padding: 4px 0; font-weight: 500;
+}
+.mini-cal-day {
+  font-size: 0.8rem; padding: 5px 2px;
+  border-radius: 6px; cursor: pointer;
+  transition: background 0.12s;
+  color: var(--text2);
+}
+.mini-cal-day:hover { background: var(--bg3); color: var(--text); }
+.mini-cal-day.other-month { color: var(--text3); }
+.mini-cal-day.today { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.mini-cal-day.selected { background: var(--accent); color: #fff; font-weight: 600; }
+.mini-cal-day.has-event::after {
+  content: ''; display: block; width: 4px; height: 4px;
+  border-radius: 50%; background: var(--accent);
+  margin: 1px auto 0;
+}
+
+/* Todo Panel */
+.todo-input-row {
+  display: flex; gap: 8px; margin-bottom: 12px;
+}
+.todo-input {
+  flex: 1; background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px;
+  color: var(--text); font-size: 0.85rem;
+  outline: none; transition: border 0.15s;
+}
+.todo-input:focus { border-color: var(--accent); }
+.todo-input::placeholder { color: var(--text3); }
+
+.btn-icon {
+  background: var(--accent); border: none;
+  border-radius: 8px; padding: 8px 12px;
+  color: #fff; cursor: pointer; font-size: 1rem;
+  transition: background 0.15s;
+}
+.btn-icon:hover { background: var(--accent2); }
+
+.todo-list { display: flex; flex-direction: column; gap: 4px; }
+.todo-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer; transition: all 0.12s;
+  background: var(--bg3);
+}
+.todo-item:hover { border-color: var(--border); }
+.todo-item.done { opacity: 0.45; }
+.todo-item.done .todo-text { text-decoration: line-through; }
+
+.todo-check {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1.5px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.todo-item.done .todo-check { background: var(--green); border-color: var(--green); }
+.todo-item.done .todo-check::after { content: '✓'; font-size: 0.65rem; color: #fff; }
+
+.todo-text { font-size: 0.85rem; flex: 1; }
+.todo-del {
+  opacity: 0; background: none; border: none;
+  color: var(--red); cursor: pointer; font-size: 0.9rem;
+  transition: opacity 0.15s;
+}
+.todo-item:hover .todo-del { opacity: 1; }
+
+/* ── CALENDAR GRID ── */
+.cal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.cal-title { font-size: 1.2rem; font-weight: 700; }
+.cal-controls { display: flex; gap: 8px; align-items: center; }
+.btn-sm {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 7px 14px;
+  color: var(--text2); font-size: 0.82rem; cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-sm:hover { background: var(--bg4); color: var(--text); }
+.btn-sm.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn-sm.primary:hover { background: var(--accent2); }
+
+.cal-view-tabs { display: flex; gap: 2px; background: var(--bg3); border-radius: 8px; padding: 3px; }
+.view-tab {
+  background: none; border: none; border-radius: 6px;
+  padding: 5px 12px; color: var(--text2);
+  font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
+}
+.view-tab.active { background: var(--bg2); color: var(--text); }
+
+.cal-grid-month {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.cal-dow-row {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+.cal-dow {
+  text-align: center; padding: 10px;
+  font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 0.05em; color: var(--text3);
+}
+.cal-days {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+}
+.cal-cell {
+  min-height: 110px; padding: 8px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer; transition: background 0.12s;
+}
+.cal-cell:nth-child(7n) { border-right: none; }
+.cal-cell:hover { background: var(--bg3); }
+.cal-cell.other-month .cal-day-num { color: var(--text3); }
+.cal-cell.today { background: var(--accent-soft); }
+.cal-cell.today .cal-day-num { color: var(--accent); font-weight: 700; }
+.cal-day-num { font-size: 0.82rem; font-weight: 500; margin-bottom: 4px; }
+
+.cal-event {
+  font-size: 0.72rem; padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--accent-soft); color: var(--accent);
+  margin-bottom: 2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer;
+}
+.cal-event.cat-work { background: rgba(62,207,142,0.15); color: var(--green); }
+.cal-event.cat-personal { background: rgba(245,166,35,0.15); color: var(--amber); }
+.cal-event.cat-health { background: rgba(242,107,107,0.15); color: var(--red); }
+.cal-event.cat-todo { background: rgba(124,106,247,0.12); color: #a89af7; }
+
+/* Week view */
+.cal-week {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.week-header-row {
+  display: grid;
+  grid-template-columns: 56px repeat(7, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+.week-time-label { padding: 10px 8px; text-align: right; }
+.week-day-head {
+  padding: 10px; text-align: center;
+  border-left: 1px solid var(--border);
+}
+.week-day-head .dow { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; }
+.week-day-head .date-num { font-size: 1rem; font-weight: 600; margin-top: 2px; }
+.week-day-head.today .date-num {
+  background: var(--accent); color: #fff;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 2px auto 0;
+}
+.week-body {
+  display: grid;
+  grid-template-columns: 56px repeat(7, 1fr);
+  overflow-y: auto; max-height: 600px;
+  position: relative;
+}
+.week-time-col { }
+.week-time-slot {
+  height: 48px;
+  border-bottom: 1px solid var(--border);
+  padding: 2px 8px 0 0;
+  text-align: right;
+  font-size: 0.7rem; color: var(--text3);
+  position: relative; top: -8px;
+}
+.week-day-col {
+  border-left: 1px solid var(--border);
+  position: relative;
+}
+.week-slot {
+  height: 48px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  transition: background 0.1s;
+}
+.week-slot:hover { background: var(--accent-soft); }
+.week-slot.half { border-bottom-style: dashed; border-bottom-color: var(--border); }
+
+.week-event {
+  position: absolute; left: 2px; right: 2px;
+  border-radius: 6px; padding: 3px 6px;
+  font-size: 0.72rem; font-weight: 500;
+  background: var(--accent); color: #fff;
+  overflow: hidden; cursor: pointer;
+  z-index: 5;
+  border-left: 3px solid rgba(255,255,255,0.3);
+}
+.week-event.cat-work { background: rgba(62,207,142,0.25); color: var(--green); border-left-color: var(--green); }
+.week-event.cat-personal { background: rgba(245,166,35,0.2); color: var(--amber); border-left-color: var(--amber); }
+.week-event.cat-health { background: rgba(242,107,107,0.2); color: var(--red); border-left-color: var(--red); }
+
+/* drag ghost */
+.drag-ghost {
+  position: absolute; left: 2px; right: 2px;
+  background: var(--accent-soft);
+  border: 2px dashed var(--accent);
+  border-radius: 6px; z-index: 10;
+  pointer-events: none;
+}
+
+/* ── TIMETRACKER PAGE ── */
+.tracker-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 20px;
+}
+
+.time-grid-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.tg-header {
+  display: flex; align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.tg-title { font-weight: 600; font-size: 0.9rem; flex: 1; }
+.tg-legend { display: flex; gap: 10px; align-items: center; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.75rem; color: var(--text2); }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+.btn-clear {
+  background: none; border: 1px solid var(--border);
+  border-radius: 6px; padding: 5px 10px;
+  color: var(--text3); font-size: 0.75rem;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-clear:hover { color: var(--red); border-color: var(--red); }
+
+.time-grid {
+  display: grid;
+  grid-template-columns: 52px repeat(7, 1fr);
+  overflow-y: auto;
+  max-height: calc(100vh - 240px);
+  min-height: 400px;
+}
+
+.tg-time-col { }
+.tg-time-cell {
+  height: 40px;
+  border-bottom: 1px solid var(--border);
+  padding: 2px 6px 0 0;
+  text-align: right;
+  font-size: 0.68rem; color: var(--text3);
+  position: relative; top: -6px;
+  user-select: none;
+}
+
+.tg-day-col {
+  border-left: 1px solid var(--border);
+  position: relative;
+}
+.tg-day-head {
+  text-align: center; padding: 8px 4px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.75rem; font-weight: 600;
+  position: sticky; top: 0;
+  background: var(--bg2); z-index: 10;
+}
+.tg-day-head.today-head { color: var(--accent); }
+
+.tg-cell {
+  height: 40px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  cursor: crosshair;
+  transition: background 0.08s;
+}
+.tg-cell:hover { background: rgba(124,106,247,0.06); }
+
+.tg-block {
+  position: absolute; left: 1px; right: 1px;
+  border-radius: 4px;
+  opacity: 0.85; cursor: pointer;
+  display: flex; align-items: flex-start;
+  padding: 2px 4px;
+  font-size: 0.68rem; font-weight: 500;
+  overflow: hidden;
+  z-index: 5;
+  user-select: none;
+}
+.tg-block:hover { opacity: 1; }
+.tg-block .block-del {
+  position: absolute; top: 1px; right: 2px;
+  font-size: 0.65rem; opacity: 0; cursor: pointer;
+  background: rgba(0,0,0,0.3); border-radius: 3px; padding: 0 2px;
+}
+.tg-block:hover .block-del { opacity: 1; }
+
+.tg-drag-preview {
+  position: absolute; left: 1px; right: 1px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  border: 2px dashed var(--accent);
+  z-index: 20; pointer-events: none;
+}
+
+/* Color picker */
+.color-picker-row {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+}
+.color-swatch {
+  width: 24px; height: 24px; border-radius: 6px;
+  cursor: pointer; transition: transform 0.12s;
+  border: 2px solid transparent;
+}
+.color-swatch:hover { transform: scale(1.15); }
+.color-swatch.selected { border-color: #fff; }
+
+/* ── TIMER SECTION ── */
+.tracker-side { display: flex; flex-direction: column; gap: 14px; }
+
+.timer-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+}
+
+.timer-display {
+  text-align: center;
+  font-size: 2.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin: 8px 0 16px;
+}
+
+.timer-controls { display: flex; gap: 8px; justify-content: center; }
+.timer-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 18px;
+  color: var(--text); font-size: 0.82rem;
+  cursor: pointer; transition: all 0.15s;
+}
+.timer-btn:hover { background: var(--bg4); }
+.timer-btn.start { background: var(--accent); border-color: var(--accent); color: #fff; }
+.timer-btn.start:hover { background: var(--accent2); }
+.timer-btn.stop { background: var(--red-soft); border-color: rgba(242,107,107,0.3); color: var(--red); }
+
+/* Synced Todo in tracker */
+.tracker-todo {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  flex: 1;
+}
+
+.synced-todo-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 8px; border-radius: 7px;
+  cursor: pointer; transition: background 0.12s;
+  margin-bottom: 3px;
+}
+.synced-todo-item:hover { background: var(--bg3); }
+.synced-todo-item.done { opacity: 0.45; }
+.synced-todo-item.done .synced-todo-text { text-decoration: line-through; }
+.synced-check {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 1.5px solid var(--border2); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; font-size: 0.6rem;
+}
+.synced-todo-item.done .synced-check { background: var(--green); border-color: var(--green); color: #fff; }
+.synced-todo-text { font-size: 0.82rem; flex: 1; }
+.timer-for-todo {
+  font-size: 0.7rem; color: var(--text3);
+  background: var(--bg3); border-radius: 4px; padding: 2px 6px;
+}
+.timer-for-todo.active { color: var(--accent); background: var(--accent-soft); }
+
+/* ── MODAL ── */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 500; display: none;
+  align-items: center; justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 24px; width: 400px; max-width: 90vw;
+  box-shadow: var(--shadow);
+}
+.modal-title { font-size: 1rem; font-weight: 600; margin-bottom: 16px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 0.78rem; color: var(--text2); margin-bottom: 5px; display: block; }
+.form-input {
+  width: 100%; background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 12px;
+  color: var(--text); font-size: 0.88rem;
+  outline: none; transition: border 0.15s;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+.btn-cancel {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 18px;
+  color: var(--text2); font-size: 0.85rem; cursor: pointer;
+}
+.btn-save {
+  background: var(--accent); border: none;
+  border-radius: 8px; padding: 8px 18px;
+  color: #fff; font-size: 0.85rem; cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-save:hover { background: var(--accent2); }
+.btn-del-modal {
+  background: var(--red-soft); border: 1px solid rgba(242,107,107,0.3);
+  border-radius: 8px; padding: 8px 18px;
+  color: var(--red); font-size: 0.85rem; cursor: pointer;
+  margin-right: auto;
+}
+
+.cat-select {
+  display: flex; gap: 6px; flex-wrap: wrap;
+}
+.cat-opt {
+  padding: 5px 12px; border-radius: 20px;
+  border: 1.5px solid var(--border);
+  font-size: 0.78rem; cursor: pointer;
+  transition: all 0.12s; color: var(--text2);
+}
+.cat-opt.selected { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+.cat-opt.work.selected { border-color: var(--green); background: var(--green-soft); color: var(--green); }
+.cat-opt.personal.selected { border-color: var(--amber); background: var(--amber-soft); color: var(--amber); }
+.cat-opt.health.selected { border-color: var(--red); background: var(--red-soft); color: var(--red); }
+
+/* ── CONTEXT MENU ── */
+.ctx-menu {
+  position: fixed; z-index: 600;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 6px;
+  box-shadow: var(--shadow);
+  min-width: 160px;
+  display: none;
+}
+.ctx-menu.open { display: block; }
+.ctx-item {
+  padding: 7px 14px; border-radius: 6px;
+  font-size: 0.83rem; cursor: pointer;
+  transition: background 0.1s;
+  color: var(--text);
+}
+.ctx-item:hover { background: var(--bg4); }
+.ctx-item.danger { color: var(--red); }
+.ctx-sep { height: 1px; background: var(--border); margin: 4px 6px; }
+
+/* ── TOAST ── */
+.toast-wrap {
+  position: fixed; bottom: 24px; right: 24px;
+  z-index: 700; display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 10px; padding: 12px 18px;
+  font-size: 0.85rem; color: var(--text);
+  animation: slideUp 0.2s ease;
+  box-shadow: var(--shadow);
+}
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* loading */
+.loading {
+  position: fixed; inset: 0;
+  background: var(--bg); z-index: 999;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px; color: var(--text2); font-size: 0.9rem;
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* scroll */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border2); }
+
+/* Current time line */
+.current-time-line {
+  position: absolute; left: 0; right: 0;
+  height: 2px; background: var(--red);
+  z-index: 15; pointer-events: none;
+}
+.current-time-line::before {
+  content: ''; position: absolute;
+  left: -4px; top: -4px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--red);
+}
+
+/* Habit page placeholder */
+.empty-state {
+  text-align: center; padding: 60px 20px;
+  color: var(--text3);
+}
+.empty-state h3 { font-size: 1rem; margin-bottom: 8px; color: var(--text2); }
+.empty-state p { font-size: 0.85rem; }
+
+@media (max-width: 900px) {
+  .calendar-layout { grid-template-columns: 1fr; }
+  .tracker-layout { grid-template-columns: 1fr; }
+  .nav-tabs { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <span>불러오는 중...</span>
+</div>
+
+<!-- Login Screen -->
+<div id="login-screen" style="display:none">
+  <div class="login-logo">My Workspace</div>
+  <div class="login-sub">나만의 개인 스케줄러</div>
+  <button class="google-btn" onclick="signInWithGoogle()">
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+    </svg>
+    Google 계정으로 시작하기
+  </button>
+</div>
+
+<!-- App -->
+<div id="app">
+  <nav class="topnav">
+    <span class="nav-brand">My Workspace</span>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchPage('calendar', this)">📅 캘린더</button>
+      <button class="nav-tab" onclick="switchPage('tracker', this)">⏱ 타임트래커</button>
+      <button class="nav-tab" onclick="switchPage('habit', this)">🔥 해빗</button>
+    </div>
+    <div class="user-avatar" id="user-avatar" onclick="showUserMenu()" title="로그아웃">
+      <span id="user-initials">?</span>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- CALENDAR PAGE -->
+    <div class="page active" id="page-calendar">
+      <div class="calendar-layout">
+        <!-- Sidebar -->
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <!-- Mini Calendar -->
+          <div class="sidebar-panel">
+            <div class="mini-cal-header">
+              <button class="mini-cal-nav" onclick="miniCalPrev()">‹</button>
+              <span class="mini-cal-month" id="mini-cal-month"></span>
+              <button class="mini-cal-nav" onclick="miniCalNext()">›</button>
+            </div>
+            <div class="mini-cal-grid" id="mini-cal-grid"></div>
+          </div>
+
+          <!-- Today's Todos -->
+          <div class="sidebar-panel">
+            <div class="panel-title">오늘 할 일</div>
+            <div class="todo-input-row">
+              <input class="todo-input" id="todo-input" placeholder="할 일 추가..." onkeydown="if(event.key==='Enter')addTodo()">
+              <button class="btn-icon" onclick="addTodo()">+</button>
+            </div>
+            <div class="todo-list" id="todo-list"></div>
+          </div>
+        </div>
+
+        <!-- Calendar Main -->
+        <div>
+          <div class="cal-header">
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button class="btn-sm" onclick="calNav(-1)">‹</button>
+              <h2 class="cal-title" id="cal-title"></h2>
+              <button class="btn-sm" onclick="calNav(1)">›</button>
+              <button class="btn-sm" onclick="goToday()">오늘</button>
+            </div>
+            <div class="cal-controls">
+              <div class="cal-view-tabs">
+                <button class="view-tab active" onclick="switchCalView('month', this)">월</button>
+                <button class="view-tab" onclick="switchCalView('week', this)">주</button>
+              </div>
+              <button class="btn-sm primary" onclick="openEventModal()">+ 일정 추가</button>
+            </div>
+          </div>
+
+          <div id="cal-month-view">
+            <div class="cal-grid-month">
+              <div class="cal-dow-row">
+                <div class="cal-dow">일</div><div class="cal-dow">월</div>
+                <div class="cal-dow">화</div><div class="cal-dow">수</div>
+                <div class="cal-dow">목</div><div class="cal-dow">금</div>
+                <div class="cal-dow">토</div>
+              </div>
+              <div class="cal-days" id="cal-days"></div>
+            </div>
+          </div>
+
+          <div id="cal-week-view" style="display:none;">
+            <div class="cal-week">
+              <div class="week-header-row" id="week-header"></div>
+              <div class="week-body" id="week-body"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMETRACKER PAGE -->
+    <div class="page" id="page-tracker">
+      <div class="tracker-layout">
+        <div class="time-grid-wrap">
+          <div class="tg-header">
+            <span class="tg-title">⏱ Time Tracker — <span id="tg-week-label"></span></span>
+            <div class="tg-legend" id="tg-legend"></div>
+            <button class="btn-clear" onclick="clearGrayBlocks()">회색 삭제</button>
+          </div>
+          <div class="time-grid" id="time-grid"></div>
+        </div>
+
+        <!-- Right side -->
+        <div class="tracker-side">
+          <!-- Timer -->
+          <div class="timer-panel">
+            <div class="panel-title">타이머</div>
+            <div class="timer-display" id="timer-display">00:00:00</div>
+            <div class="timer-controls">
+              <button class="timer-btn start" id="timer-start-btn" onclick="timerToggle()">시작</button>
+              <button class="timer-btn stop" onclick="timerReset()">초기화</button>
+              <button class="timer-btn" onclick="timerRecord()">기록</button>
+            </div>
+          </div>
+
+          <!-- Synced Todo -->
+          <div class="tracker-todo">
+            <div class="panel-title" style="margin-bottom: 10px;">오늘 할 일 (캘린더 연동)</div>
+            <div id="synced-todo-list"></div>
+            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+              <div class="todo-input-row">
+                <input class="todo-input" id="tracker-todo-input" placeholder="할 일 추가..." onkeydown="if(event.key==='Enter')addTodoFromTracker()">
+                <button class="btn-icon" onclick="addTodoFromTracker()">+</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Block color picker -->
+          <div class="sidebar-panel">
+            <div class="panel-title">블록 색상</div>
+            <div class="color-picker-row" id="color-picker"></div>
+            <div style="margin-top: 12px;">
+              <div class="form-label">레이블</div>
+              <input class="form-input" id="block-label-input" placeholder="예: 업무, 공부..." style="font-size: 0.82rem;">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HABIT PAGE -->
+    <div class="page" id="page-habit">
+      <div class="empty-state">
+        <h3>🔥 해빗 트래커</h3>
+        <p>곧 추가될 예정입니다. 현재 캘린더와 타임트래커를 이용해보세요!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal-backdrop" id="event-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title-text">일정 추가</div>
+    <div class="form-group">
+      <label class="form-label">제목</label>
+      <input class="form-input" id="ev-title" placeholder="일정 제목">
+    </div>
+    <div class="form-group">
+      <label class="form-label">카테고리</label>
+      <div class="cat-select">
+        <div class="cat-opt selected" data-cat="default" onclick="selectCat(this)">기본</div>
+        <div class="cat-opt work" data-cat="work" onclick="selectCat(this)">업무</div>
+        <div class="cat-opt personal" data-cat="personal" onclick="selectCat(this)">개인</div>
+        <div class="cat-opt health" data-cat="health" onclick="selectCat(this)">건강</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">날짜</label>
+        <input class="form-input" id="ev-date" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">종일</label>
+        <select class="form-input" id="ev-allday" onchange="toggleTimeFields()">
+          <option value="true">종일</option>
+          <option value="false">시간 지정</option>
+        </select>
+      </div>
+    </div>
+    <div id="ev-time-fields" style="display:none;">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">시작</label>
+          <input class="form-input" id="ev-start" type="time">
+        </div>
+        <div class="form-group">
+          <label class="form-label">종료</label>
+          <input class="form-input" id="ev-end" type="time">
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">메모</label>
+      <textarea class="form-input" id="ev-memo" rows="2" style="resize: vertical;" placeholder="메모 (선택)"></textarea>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-del-modal" id="modal-del-btn" onclick="deleteEvent()" style="display:none;">삭제</button>
+      <button class="btn-cancel" onclick="closeEventModal()">취소</button>
+      <button class="btn-save" onclick="saveEvent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item" onclick="ctxAction('edit')">✏️ 편집</div>
+  <div class="ctx-item" onclick="ctxAction('duplicate')">👯 복제</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" onclick="ctxAction('delete')">🗑 삭제</div>
+</div>
+
+<!-- User Menu -->
+<div class="ctx-menu" id="user-menu">
+  <div class="ctx-item" id="user-email-display" style="color: var(--text2); font-size: 0.78rem; pointer-events: none;"></div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="backupData()">💾 백업</div>
+  <div class="ctx-item danger" onclick="signOut()">🚪 로그아웃</div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-wrap" id="toasts"></div>
+
+<!-- Block label modal -->
+<div class="modal-backdrop" id="block-modal">
+  <div class="modal" style="width: 340px;">
+    <div class="modal-title">타임블록 저장</div>
+    <div class="form-group">
+      <label class="form-label">레이블</label>
+      <input class="form-input" id="bm-label" placeholder="예: 업무, 공부...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">색상</label>
+      <div class="color-picker-row" id="bm-color-picker"></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeBlockModal()">취소</button>
+      <button class="btn-save" onclick="confirmBlock()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// FIREBASE CONFIG — ⚠️ 여기에 본인 Firebase 설정을 넣으세요
+// ============================================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBjKiw_QWnsy9KkEuKKNH6Fk2YKW1q6UW8",
+  authDomain: "scheduler-dd.firebaseapp.com",
+  projectId: "scheduler-dd",
+  storageBucket: "scheduler-dd.firebasestorage.app",
+  messagingSenderId: "944407293379",
+  appId: "1:944407293379:web:f44ecedc28757930b8e176"
+};
+
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ============================================================
+// APP STATE
+// ============================================================
+let currentUser = null;
+let events = [];   // {id, title, date, startTime, endTime, allDay, category, memo}
+let todos = [];    // {id, text, done, date}
+let trackerBlocks = {}; // {weekKey: {dayCol: [{startCell, endCell, color, label}]}}
+
+let calView = 'month';
+let calDate = new Date();
+let miniCalDate = new Date();
+let selectedDate = new Date();
+
+let editingEventId = null;
+let selectedCat = 'default';
+
+// Timer
+let timerInterval = null;
+let timerSeconds = 0;
+let timerRunning = false;
+
+// Time tracker drag
+let tgDragging = false;
+let tgDragDay = -1;
+let tgDragStart = -1;
+let tgDragEnd = -1;
+const CELL_HEIGHT = 40;
+const HOURS = Array.from({length: 24}, (_, i) => i);
+const DAYS = ['일','월','화','수','목','금','토'];
+
+// Block colors
+const BLOCK_COLORS = [
+  {color: '#7c6af7', label: '보라'},
+  {color: '#3ecf8e', label: '초록'},
+  {color: '#f26b6b', label: '빨강'},
+  {color: '#f5a623', label: '주황'},
+  {color: '#5bb8f5', label: '파랑'},
+  {color: '#f78fb3', label: '분홍'},
+  {color: '#888', label: '회색'},
+];
+let selectedBlockColor = BLOCK_COLORS[0].color;
+let selectedBlockLabel = '';
+
+let pendingBlock = null; // {dayCol, startCell, endCell}
+let ctxTarget = null;   // for context menu
+
+// ============================================================
+// AUTH
+// ============================================================
+auth.onAuthStateChanged(user => {
+  document.getElementById('loading').style.display = 'none';
+  if (user) {
+    currentUser = user;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    const initials = (user.displayName || user.email || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    document.getElementById('user-initials').textContent = initials;
+    document.getElementById('user-email-display').textContent = user.email;
+    if (user.photoURL) {
+      document.getElementById('user-avatar').innerHTML = `<img src="${user.photoURL}">`;
+    }
+    loadData();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(e => toast('로그인 실패: ' + e.message));
+}
+
+function signOut() {
+  auth.signOut();
+  closeUserMenu();
+}
+
+function showUserMenu() {
+  const menu = document.getElementById('user-menu');
+  const avatar = document.getElementById('user-avatar');
+  const rect = avatar.getBoundingClientRect();
+  menu.style.top = (rect.bottom + 8) + 'px';
+  menu.style.right = (window.innerWidth - rect.right) + 'px';
+  menu.style.left = 'auto';
+  menu.classList.add('open');
+  setTimeout(() => document.addEventListener('click', closeUserMenu, {once: true}), 0);
+}
+function closeUserMenu() {
+  document.getElementById('user-menu').classList.remove('open');
+}
+
+// ============================================================
+// FIRESTORE
+// ============================================================
+function userRef() { return db.collection('users').doc(currentUser.uid); }
+
+async function loadData() {
+  try {
+    const doc = await userRef().get();
+    if (doc.exists) {
+      const data = doc.data();
+      events = data.events || [];
+      todos = data.todos || [];
+      trackerBlocks = data.trackerBlocks || {};
+    }
+  } catch(e) { toast('데이터 로드 실패: ' + e.message); }
+  renderAll();
+}
+
+function saveData() {
+  if (!currentUser) return;
+  userRef().set({ events, todos, trackerBlocks }, { merge: true })
+    .catch(e => toast('저장 실패: ' + e.message));
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function switchPage(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (page === 'tracker') { renderTimeGrid(); renderSyncedTodos(); }
+}
+
+function switchCalView(view, btn) {
+  calView = view;
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('cal-month-view').style.display = view === 'month' ? 'block' : 'none';
+  document.getElementById('cal-week-view').style.display = view === 'week' ? 'block' : 'none';
+  renderCalendar();
+}
+
+function calNav(dir) {
+  if (calView === 'month') {
+    calDate.setMonth(calDate.getMonth() + dir);
+  } else {
+    calDate.setDate(calDate.getDate() + dir * 7);
+  }
+  renderCalendar();
+}
+
+function goToday() { calDate = new Date(); selectedDate = new Date(); renderCalendar(); renderMiniCal(); }
+
+// ============================================================
+// RENDER ALL
+// ============================================================
+function renderAll() {
+  renderMiniCal();
+  renderCalendar();
+  renderTodos();
+  renderColorPicker();
+  renderTgWeekLabel();
+}
+
+// ============================================================
+// MINI CALENDAR
+// ============================================================
+function miniCalPrev() { miniCalDate.setMonth(miniCalDate.getMonth() - 1); renderMiniCal(); }
+function miniCalNext() { miniCalDate.setMonth(miniCalDate.getMonth() + 1); renderMiniCal(); }
+
+function renderMiniCal() {
+  const y = miniCalDate.getFullYear(), m = miniCalDate.getMonth();
+  document.getElementById('mini-cal-month').textContent = `${y}년 ${m+1}월`;
+  const grid = document.getElementById('mini-cal-grid');
+  grid.innerHTML = '';
+  ['일','월','화','수','목','금','토'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'mini-cal-dow'; el.textContent = d; grid.appendChild(el);
+  });
+  const first = new Date(y, m, 1).getDay();
+  const last = new Date(y, m+1, 0).getDate();
+  const today = new Date();
+  for (let i = 0; i < first; i++) {
+    const prev = new Date(y, m, -first+i+1);
+    addMiniDay(grid, prev.getDate(), true);
+  }
+  for (let d = 1; d <= last; d++) {
+    const isToday = d === today.getDate() && m === today.getMonth() && y === today.getFullYear();
+    const isSel = d === selectedDate.getDate() && m === selectedDate.getMonth() && y === selectedDate.getFullYear();
+    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasEvent = events.some(e => e.date === dateStr);
+    addMiniDay(grid, d, false, isToday, isSel, hasEvent, () => {
+      selectedDate = new Date(y, m, d);
+      calDate = new Date(y, m, d);
+      renderCalendar(); renderMiniCal();
+    });
+  }
+  const rem = (first + last) % 7;
+  if (rem > 0) for (let d = 1; d <= 7 - rem; d++) addMiniDay(grid, d, true);
+}
+
+function addMiniDay(grid, day, other, isToday, isSel, hasEvent, onClick) {
+  const el = document.createElement('div');
+  let cls = 'mini-cal-day';
+  if (other) cls += ' other-month';
+  if (isToday) cls += ' today';
+  if (isSel && !isToday) cls += ' selected';
+  if (hasEvent) cls += ' has-event';
+  el.className = cls; el.textContent = day;
+  if (onClick) el.onclick = onClick;
+  grid.appendChild(el);
+}
+
+// ============================================================
+// CALENDAR
+// ============================================================
+function renderCalendar() {
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+  if (calView === 'month') {
+    document.getElementById('cal-title').textContent = `${y}년 ${m+1}월`;
+    renderMonthView(y, m);
+  } else {
+    renderWeekView();
+  }
+}
+
+function renderMonthView(y, m) {
+  const days = document.getElementById('cal-days');
+  days.innerHTML = '';
+  const first = new Date(y, m, 1).getDay();
+  const last = new Date(y, m+1, 0).getDate();
+  const today = new Date();
+
+  for (let i = 0; i < first; i++) {
+    const prev = new Date(y, m, -first+i+1);
+    addCalCell(days, prev, true, today);
+  }
+  for (let d = 1; d <= last; d++) {
+    addCalCell(days, new Date(y, m, d), false, today);
+  }
+  const rem = (first + last) % 7;
+  if (rem > 0) for (let d = 1; d <= 7-rem; d++) addCalCell(days, new Date(y, m+1, d), true, today);
+}
+
+function addCalCell(container, date, other, today) {
+  const cell = document.createElement('div');
+  const dateStr = fmtDate(date);
+  let cls = 'cal-cell';
+  if (other) cls += ' other-month';
+  if (sameDay(date, today)) cls += ' today';
+  cell.className = cls;
+  cell.innerHTML = `<div class="cal-day-num">${date.getDate()}</div>`;
+  cell.onclick = () => { selectedDate = date; openEventModal(dateStr); };
+
+  const dayEvents = events.filter(e => e.date === dateStr);
+  const dayTodos = todos.filter(t => t.date === dateStr && !t.done);
+  dayTodos.slice(0, 1).forEach(t => {
+    const ev = document.createElement('div');
+    ev.className = 'cal-event cat-todo';
+    ev.textContent = '☑ ' + t.text;
+    ev.onclick = (e) => { e.stopPropagation(); };
+    cell.appendChild(ev);
+  });
+  dayEvents.slice(0, 3).forEach(ev => {
+    const el = document.createElement('div');
+    el.className = `cal-event cat-${ev.category || 'default'}`;
+    el.textContent = ev.title;
+    el.onclick = (e) => { e.stopPropagation(); openEventModal(dateStr, ev.id); };
+    el.oncontextmenu = (e) => { e.preventDefault(); showCtxMenu(e, ev.id); };
+    cell.appendChild(el);
+  });
+  if (dayEvents.length > 3) {
+    const more = document.createElement('div');
+    more.className = 'cal-event';
+    more.style.opacity = '0.5';
+    more.textContent = `+${dayEvents.length - 3}개 더`;
+    cell.appendChild(more);
+  }
+  container.appendChild(cell);
+}
+
+function renderWeekView() {
+  const startOfWeek = new Date(calDate);
+  startOfWeek.setDate(calDate.getDate() - calDate.getDay());
+  const today = new Date();
+
+  const weekDays = Array.from({length: 7}, (_, i) => {
+    const d = new Date(startOfWeek); d.setDate(startOfWeek.getDate() + i); return d;
+  });
+  document.getElementById('cal-title').textContent =
+    `${weekDays[0].getMonth()+1}월 ${weekDays[0].getDate()}일 ~ ${weekDays[6].getMonth()+1}월 ${weekDays[6].getDate()}일`;
+
+  // Header
+  const header = document.getElementById('week-header');
+  header.innerHTML = '<div class="week-time-label" style="border-bottom:none;"></div>';
+  weekDays.forEach(d => {
+    const col = document.createElement('div');
+    col.className = 'week-day-head' + (sameDay(d, today) ? ' today' : '');
+    col.innerHTML = `<div class="dow">${DAYS[d.getDay()]}</div><div class="date-num">${d.getDate()}</div>`;
+    header.appendChild(col);
+  });
+
+  // Body
+  const body = document.getElementById('week-body');
+  body.innerHTML = '';
+
+  // Time column
+  const timeCol = document.createElement('div');
+  timeCol.className = 'week-time-col';
+  HOURS.forEach(h => {
+    const slot = document.createElement('div');
+    slot.className = 'week-time-slot';
+    slot.textContent = h === 0 ? '' : `${String(h).padStart(2,'0')}:00`;
+    timeCol.appendChild(slot);
+  });
+  body.appendChild(timeCol);
+
+  // Day columns
+  weekDays.forEach((d, di) => {
+    const col = document.createElement('div');
+    col.className = 'week-day-col';
+    const dateStr = fmtDate(d);
+
+    HOURS.forEach(h => {
+      const slot = document.createElement('div');
+      slot.className = 'week-slot';
+      slot.dataset.hour = h;
+      slot.dataset.date = dateStr;
+      slot.onclick = () => openEventModal(dateStr);
+      col.appendChild(slot);
+    });
+
+    // Add events
+    const dayEvents = events.filter(e => e.date === dateStr && !e.allDay);
+    dayEvents.forEach(ev => {
+      if (!ev.startTime || !ev.endTime) return;
+      const [sh, sm] = ev.startTime.split(':').map(Number);
+      const [eh, em] = ev.endTime.split(':').map(Number);
+      const top = (sh * 60 + sm) / 60 * 48;
+      const height = Math.max(24, ((eh * 60 + em) - (sh * 60 + sm)) / 60 * 48);
+      const el = document.createElement('div');
+      el.className = `week-event cat-${ev.category || 'default'}`;
+      el.style.cssText = `top:${top}px; height:${height}px;`;
+      el.textContent = ev.title;
+      el.onclick = (e) => { e.stopPropagation(); openEventModal(dateStr, ev.id); };
+      el.oncontextmenu = (e) => { e.preventDefault(); showCtxMenu(e, ev.id); };
+      col.appendChild(el);
+    });
+
+    // Week view drag
+    let wkDragStart = null;
+    col.onmousedown = (e) => {
+      if (e.button !== 0) return;
+      const rect = col.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      wkDragStart = Math.floor(y / 48);
+    };
+    col.onmousemove = (e) => {
+      if (wkDragStart === null || e.buttons !== 1) return;
+      const rect = col.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const end = Math.floor(y / 48);
+      removeGhost(col);
+      const ghost = document.createElement('div');
+      ghost.className = 'drag-ghost';
+      ghost.style.cssText = `top:${Math.min(wkDragStart,end)*48}px; height:${(Math.abs(end-wkDragStart)+1)*48}px;`;
+      ghost.dataset.ghost = '1';
+      col.appendChild(ghost);
+    };
+    col.onmouseup = (e) => {
+      if (wkDragStart === null) return;
+      removeGhost(col);
+      const rect = col.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const end = Math.floor(y / 48);
+      const s = Math.min(wkDragStart, end);
+      const endH = Math.max(wkDragStart, end) + 1;
+      wkDragStart = null;
+      openEventModal(dateStr, null, `${String(s).padStart(2,'0')}:00`, `${String(Math.min(endH,24)).padStart(2,'0')}:00`);
+    };
+    col.onmouseleave = () => { removeGhost(col); };
+
+    body.appendChild(col);
+  });
+
+  // Current time line
+  if (weekDays.some(d => sameDay(d, today))) {
+    const now = new Date();
+    const totalMin = now.getHours() * 60 + now.getMinutes();
+    const topPx = totalMin / 60 * 48;
+    const todayCol = body.querySelectorAll('.week-day-col')[today.getDay()];
+    if (todayCol) {
+      const line = document.createElement('div');
+      line.className = 'current-time-line';
+      line.style.top = topPx + 'px';
+      todayCol.appendChild(line);
+    }
+  }
+}
+
+function removeGhost(col) {
+  col.querySelectorAll('[data-ghost]').forEach(g => g.remove());
+}
+
+// ============================================================
+// EVENT MODAL
+// ============================================================
+function openEventModal(dateStr, eventId, startTime, endTime) {
+  editingEventId = eventId || null;
+  const modal = document.getElementById('event-modal');
+  const delBtn = document.getElementById('modal-del-btn');
+  document.getElementById('modal-title-text').textContent = eventId ? '일정 수정' : '일정 추가';
+  delBtn.style.display = eventId ? 'block' : 'none';
+
+  if (eventId) {
+    const ev = events.find(e => e.id === eventId);
+    if (!ev) return;
+    document.getElementById('ev-title').value = ev.title;
+    document.getElementById('ev-date').value = ev.date;
+    document.getElementById('ev-allday').value = ev.allDay ? 'true' : 'false';
+    document.getElementById('ev-start').value = ev.startTime || '';
+    document.getElementById('ev-end').value = ev.endTime || '';
+    document.getElementById('ev-memo').value = ev.memo || '';
+    selectCatById(ev.category || 'default');
+    toggleTimeFields();
+  } else {
+    document.getElementById('ev-title').value = '';
+    document.getElementById('ev-date').value = dateStr || fmtDate(selectedDate);
+    document.getElementById('ev-memo').value = '';
+    if (startTime) {
+      document.getElementById('ev-allday').value = 'false';
+      document.getElementById('ev-start').value = startTime;
+      document.getElementById('ev-end').value = endTime || startTime;
+    } else {
+      document.getElementById('ev-allday').value = 'true';
+    }
+    selectCatById('default');
+    toggleTimeFields();
+  }
+  modal.classList.add('open');
+  setTimeout(() => document.getElementById('ev-title').focus(), 50);
+}
+
+function closeEventModal() {
+  document.getElementById('event-modal').classList.remove('open');
+  editingEventId = null;
+}
+
+function toggleTimeFields() {
+  const allday = document.getElementById('ev-allday').value === 'true';
+  document.getElementById('ev-time-fields').style.display = allday ? 'none' : 'block';
+}
+
+function selectCat(el) {
+  document.querySelectorAll('.cat-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCat = el.dataset.cat;
+}
+function selectCatById(cat) {
+  document.querySelectorAll('.cat-opt').forEach(o => {
+    o.classList.toggle('selected', o.dataset.cat === cat);
+  });
+  selectedCat = cat;
+}
+
+function saveEvent() {
+  const title = document.getElementById('ev-title').value.trim();
+  if (!title) { toast('제목을 입력해주세요'); return; }
+  const allDay = document.getElementById('ev-allday').value === 'true';
+  const ev = {
+    id: editingEventId || uid(),
+    title,
+    date: document.getElementById('ev-date').value,
+    allDay,
+    startTime: allDay ? '' : document.getElementById('ev-start').value,
+    endTime: allDay ? '' : document.getElementById('ev-end').value,
+    category: selectedCat,
+    memo: document.getElementById('ev-memo').value.trim()
+  };
+  if (editingEventId) {
+    events = events.map(e => e.id === editingEventId ? ev : e);
+  } else {
+    events.push(ev);
+  }
+  saveData(); closeEventModal(); renderAll(); toast('일정이 저장되었습니다');
+}
+
+function deleteEvent() {
+  if (!editingEventId) return;
+  events = events.filter(e => e.id !== editingEventId);
+  saveData(); closeEventModal(); renderAll(); toast('일정이 삭제되었습니다');
+}
+
+// ============================================================
+// CONTEXT MENU
+// ============================================================
+function showCtxMenu(e, eventId) {
+  ctxTarget = eventId;
+  const menu = document.getElementById('ctx-menu');
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+  menu.classList.add('open');
+  setTimeout(() => document.addEventListener('click', closeCtxMenu, {once: true}), 0);
+}
+function closeCtxMenu() { document.getElementById('ctx-menu').classList.remove('open'); }
+function ctxAction(action) {
+  if (!ctxTarget) return;
+  if (action === 'edit') { const ev = events.find(e => e.id === ctxTarget); if(ev) openEventModal(ev.date, ctxTarget); }
+  if (action === 'delete') { events = events.filter(e => e.id !== ctxTarget); saveData(); renderAll(); toast('삭제됨'); }
+  if (action === 'duplicate') {
+    const ev = events.find(e => e.id === ctxTarget);
+    if(ev) { events.push({...ev, id: uid(), title: ev.title + ' (복사)'}); saveData(); renderAll(); toast('복제됨'); }
+  }
+  closeCtxMenu();
+}
+
+// ============================================================
+// TODOS
+// ============================================================
+function addTodo() {
+  const input = document.getElementById('todo-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const todo = { id: uid(), text, done: false, date: fmtDate(new Date()) };
+  todos.push(todo);
+  input.value = '';
+  saveData(); renderTodos(); renderSyncedTodos(); renderCalendar();
+}
+
+function addTodoFromTracker() {
+  const input = document.getElementById('tracker-todo-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const todo = { id: uid(), text, done: false, date: fmtDate(new Date()) };
+  todos.push(todo);
+  input.value = '';
+  saveData(); renderTodos(); renderSyncedTodos();
+}
+
+function toggleTodo(id) {
+  todos = todos.map(t => t.id === id ? {...t, done: !t.done} : t);
+  saveData(); renderTodos(); renderSyncedTodos(); renderCalendar();
+}
+
+function deleteTodo(id) {
+  todos = todos.filter(t => t.id !== id);
+  saveData(); renderTodos(); renderSyncedTodos(); renderCalendar();
+}
+
+function renderTodos() {
+  const today = fmtDate(new Date());
+  const todayTodos = todos.filter(t => t.date === today);
+  const list = document.getElementById('todo-list');
+  list.innerHTML = '';
+  todayTodos.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'todo-item' + (t.done ? ' done' : '');
+    item.innerHTML = `
+      <div class="todo-check">${t.done ? '' : ''}</div>
+      <span class="todo-text">${t.text}</span>
+      <button class="todo-del" onclick="event.stopPropagation(); deleteTodo('${t.id}')">✕</button>
+    `;
+    item.onclick = () => toggleTodo(t.id);
+    list.appendChild(item);
+  });
+  if (todayTodos.length === 0) {
+    list.innerHTML = '<div style="text-align:center; color: var(--text3); font-size: 0.8rem; padding: 12px;">오늘 할 일이 없어요 🎉</div>';
+  }
+}
+
+function renderSyncedTodos() {
+  const today = fmtDate(new Date());
+  const todayTodos = todos.filter(t => t.date === today);
+  const list = document.getElementById('synced-todo-list');
+  list.innerHTML = '';
+  todayTodos.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'synced-todo-item' + (t.done ? ' done' : '');
+    item.innerHTML = `
+      <div class="synced-check">${t.done ? '✓' : ''}</div>
+      <span class="synced-todo-text">${t.text}</span>
+    `;
+    item.onclick = () => toggleTodo(t.id);
+    list.appendChild(item);
+  });
+  if (todayTodos.length === 0) {
+    list.innerHTML = '<div style="text-align:center; color: var(--text3); font-size: 0.8rem; padding: 10px;">할 일이 없어요 🎉</div>';
+  }
+}
+
+// ============================================================
+// TIMETRACKER
+// ============================================================
+function getWeekKey(offset = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset * 7);
+  d.setDate(d.getDate() - d.getDay());
+  return fmtDate(d);
+}
+
+let tgWeekOffset = 0;
+
+function renderTgWeekLabel() {
+  const d = new Date();
+  d.setDate(d.getDate() + tgWeekOffset * 7);
+  d.setDate(d.getDate() - d.getDay());
+  const end = new Date(d); end.setDate(d.getDate() + 6);
+  document.getElementById('tg-week-label').textContent =
+    `${d.getMonth()+1}/${d.getDate()} ~ ${end.getMonth()+1}/${end.getDate()}`;
+}
+
+function renderTimeGrid() {
+  const grid = document.getElementById('time-grid');
+  grid.innerHTML = '';
+  const wk = getWeekKey(tgWeekOffset);
+  const weekBlocks = trackerBlocks[wk] || {};
+  const today = new Date();
+
+  // Time col
+  const timeCol = document.createElement('div');
+  timeCol.className = 'tg-time-col';
+  const topSpacer = document.createElement('div');
+  topSpacer.style.height = '38px';
+  topSpacer.style.borderBottom = '1px solid var(--border)';
+  timeCol.appendChild(topSpacer);
+  HOURS.forEach(h => {
+    const cell = document.createElement('div');
+    cell.className = 'tg-time-cell';
+    cell.textContent = h === 0 ? '' : `${String(h).padStart(2,'0')}:00`;
+    timeCol.appendChild(cell);
+  });
+  grid.appendChild(timeCol);
+
+  // Day columns
+  const weekStart = new Date(); weekStart.setDate(weekStart.getDate() + tgWeekOffset * 7 - weekStart.getDay());
+
+  for (let di = 0; di < 7; di++) {
+    const dayDate = new Date(weekStart); dayDate.setDate(weekStart.getDate() + di);
+    const isToday = sameDay(dayDate, today);
+    const col = document.createElement('div');
+    col.className = 'tg-day-col';
+    col.style.position = 'relative';
+
+    const head = document.createElement('div');
+    head.className = 'tg-day-head' + (isToday ? ' today-head' : '');
+    head.textContent = DAYS[di] + ' ' + dayDate.getDate();
+    col.appendChild(head);
+
+    const cellsWrap = document.createElement('div');
+    cellsWrap.style.position = 'relative';
+
+    HOURS.forEach(h => {
+      const cell = document.createElement('div');
+      cell.className = 'tg-cell';
+      cell.dataset.day = di;
+      cell.dataset.hour = h;
+      cellsWrap.appendChild(cell);
+    });
+
+    // Drag logic
+    let dragStartHour = -1;
+    let dragPreview = null;
+
+    cellsWrap.addEventListener('mousedown', e => {
+      if (e.button !== 2) return; // right click only
+      e.preventDefault();
+      const rect = cellsWrap.getBoundingClientRect();
+      dragStartHour = Math.floor((e.clientY - rect.top) / CELL_HEIGHT);
+      tgDragging = true; tgDragDay = di;
+    });
+
+    cellsWrap.addEventListener('mousemove', e => {
+      if (!tgDragging || tgDragDay !== di) return;
+      e.preventDefault();
+      const rect = cellsWrap.getBoundingClientRect();
+      const curHour = Math.floor((e.clientY - rect.top) / CELL_HEIGHT);
+      tgDragEnd = Math.max(dragStartHour, curHour);
+      const s = Math.min(dragStartHour, tgDragEnd);
+      const en = Math.max(dragStartHour, tgDragEnd);
+      if (dragPreview) dragPreview.remove();
+      dragPreview = document.createElement('div');
+      dragPreview.className = 'tg-drag-preview';
+      dragPreview.style.cssText = `top:${s * CELL_HEIGHT}px; height:${(en - s + 1) * CELL_HEIGHT}px;`;
+      cellsWrap.appendChild(dragPreview);
+    });
+
+    cellsWrap.addEventListener('mouseup', e => {
+      if (!tgDragging || tgDragDay !== di) return;
+      if (dragPreview) { dragPreview.remove(); dragPreview = null; }
+      tgDragging = false;
+      const rect = cellsWrap.getBoundingClientRect();
+      const endHour = Math.floor((e.clientY - rect.top) / CELL_HEIGHT);
+      const s = Math.min(dragStartHour, endHour);
+      const en = Math.max(dragStartHour, endHour);
+      dragStartHour = -1;
+      if (s < 0 || en >= 24) return;
+      pendingBlock = { dayCol: di, startCell: s, endCell: en, wk };
+      openBlockModal();
+    });
+
+    // Right-click context cancel
+    cellsWrap.addEventListener('contextmenu', e => e.preventDefault());
+
+    // Render existing blocks
+    const dayBlocks = weekBlocks[di] || [];
+    dayBlocks.forEach((block, bi) => {
+      const el = document.createElement('div');
+      el.className = 'tg-block';
+      el.style.cssText = `top:${block.startCell * CELL_HEIGHT}px; height:${(block.endCell - block.startCell + 1) * CELL_HEIGHT}px; background:${block.color}22; color:${block.color}; border-left: 3px solid ${block.color};`;
+      el.innerHTML = `<span>${block.label || ''}</span><span class="block-del" onclick="deleteBlock('${wk}',${di},${bi},event)">✕</span>`;
+      cellsWrap.appendChild(el);
+    });
+
+    col.appendChild(cellsWrap);
+    grid.appendChild(col);
+  }
+  renderColorPicker();
+}
+
+function openBlockModal() {
+  document.getElementById('bm-label').value = document.getElementById('block-label-input').value;
+  renderBmColorPicker();
+  document.getElementById('block-modal').classList.add('open');
+  setTimeout(() => document.getElementById('bm-label').focus(), 50);
+}
+function closeBlockModal() {
+  document.getElementById('block-modal').classList.remove('open');
+  pendingBlock = null;
+}
+function confirmBlock() {
+  if (!pendingBlock) return;
+  const label = document.getElementById('bm-label').value.trim();
+  const {dayCol, startCell, endCell, wk} = pendingBlock;
+  if (!trackerBlocks[wk]) trackerBlocks[wk] = {};
+  if (!trackerBlocks[wk][dayCol]) trackerBlocks[wk][dayCol] = [];
+  trackerBlocks[wk][dayCol].push({startCell, endCell, color: selectedBlockColor, label});
+  closeBlockModal();
+  saveData(); renderTimeGrid(); toast('블록이 저장되었습니다');
+}
+
+function deleteBlock(wk, dayCol, bi, e) {
+  e.stopPropagation();
+  trackerBlocks[wk][dayCol].splice(bi, 1);
+  saveData(); renderTimeGrid(); toast('블록 삭제됨');
+}
+
+function clearGrayBlocks() {
+  const wk = getWeekKey(tgWeekOffset);
+  const weekBlocks = trackerBlocks[wk] || {};
+  for (const di in weekBlocks) {
+    weekBlocks[di] = (weekBlocks[di] || []).filter(b => b.color !== '#888');
+  }
+  saveData(); renderTimeGrid(); toast('회색 블록 삭제됨');
+}
+
+// ============================================================
+// COLOR PICKER
+// ============================================================
+function renderColorPicker() {
+  const cp = document.getElementById('color-picker');
+  if (!cp) return;
+  cp.innerHTML = '';
+  BLOCK_COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (c.color === selectedBlockColor ? ' selected' : '');
+    sw.style.background = c.color;
+    sw.title = c.label;
+    sw.onclick = () => { selectedBlockColor = c.color; renderColorPicker(); };
+    cp.appendChild(sw);
+  });
+}
+
+function renderBmColorPicker() {
+  const cp = document.getElementById('bm-color-picker');
+  cp.innerHTML = '';
+  BLOCK_COLORS.forEach(c => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (c.color === selectedBlockColor ? ' selected' : '');
+    sw.style.background = c.color;
+    sw.title = c.label;
+    sw.onclick = () => { selectedBlockColor = c.color; renderBmColorPicker(); };
+    cp.appendChild(sw);
+  });
+}
+
+// ============================================================
+// TIMER
+// ============================================================
+function timerToggle() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timer-start-btn').textContent = '시작';
+    document.getElementById('timer-start-btn').className = 'timer-btn start';
+  } else {
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      updateTimerDisplay();
+    }, 1000);
+    timerRunning = true;
+    document.getElementById('timer-start-btn').textContent = '일시정지';
+    document.getElementById('timer-start-btn').className = 'timer-btn stop';
+  }
+}
+function timerReset() {
+  clearInterval(timerInterval); timerRunning = false; timerSeconds = 0;
+  updateTimerDisplay();
+  document.getElementById('timer-start-btn').textContent = '시작';
+  document.getElementById('timer-start-btn').className = 'timer-btn start';
+}
+function timerRecord() {
+  if (timerSeconds < 10) { toast('먼저 타이머를 시작하세요'); return; }
+  const h = Math.floor(timerSeconds / 3600);
+  const m = Math.floor((timerSeconds % 3600) / 60);
+  const startH = new Date().getHours() - h;
+  const startCell = Math.max(0, startH);
+  const endCell = Math.min(23, startH + h);
+  const wk = getWeekKey(tgWeekOffset);
+  const today = new Date().getDay();
+  if (!trackerBlocks[wk]) trackerBlocks[wk] = {};
+  if (!trackerBlocks[wk][today]) trackerBlocks[wk][today] = [];
+  trackerBlocks[wk][today].push({startCell, endCell, color: selectedBlockColor, label: `${h}h ${m}m`});
+  saveData(); renderTimeGrid(); timerReset(); toast('타이머 기록이 저장됐습니다!');
+}
+function updateTimerDisplay() {
+  const h = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
+  const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
+  const s = String(timerSeconds % 60).padStart(2, '0');
+  document.getElementById('timer-display').textContent = `${h}:${m}:${s}`;
+}
+
+// ============================================================
+// BACKUP
+// ============================================================
+function backupData() {
+  const data = JSON.stringify({events, todos, trackerBlocks}, null, 2);
+  const blob = new Blob([data], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `workspace-backup-${fmtDate(new Date())}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('백업 파일이 다운로드됩니다');
+  closeUserMenu();
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function fmtDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function sameDay(a, b) { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+
+function toast(msg, duration = 2500) {
+  const wrap = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast'; el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), duration);
+}
+
+// Close modals on backdrop click
+document.getElementById('event-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEventModal();
+});
+document.getElementById('block-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeBlockModal();
+});
+
+// Prevent right-click browser menu globally
+document.addEventListener('contextmenu', e => {
+  if (e.target.closest('.tg-day-col, .week-day-col')) e.preventDefault();
+});
+
+// Update current time line every minute
+setInterval(() => { if (calView === 'week') renderWeekView(); }, 60000);
+</script>
+</body>
+</html>
