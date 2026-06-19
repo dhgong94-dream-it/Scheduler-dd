@@ -429,14 +429,18 @@ body {
 .btn-clear:hover { color: var(--red); border-color: var(--red); }
 
 .time-grid {
-  display: grid;
-  grid-template-columns: 52px repeat(7, 1fr);
+  display: flex;
+  flex-direction: row;
   overflow-y: auto;
+  overflow-x: hidden;
   max-height: calc(100vh - 240px);
   min-height: 400px;
 }
+.tg-time-col {
+  flex-shrink: 0;
+  width: 44px;
+}
 
-.tg-time-col { }
 .tg-time-cell {
   height: 16px;
   padding: 0 4px 0 0;
@@ -449,13 +453,17 @@ body {
 .tg-day-col {
   border-left: 1px solid var(--border);
   position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 .tg-day-head {
-  text-align: center; padding: 8px 4px;
+  text-align: center; padding: 0 4px;
   border-bottom: 1px solid var(--border);
-  font-size: 0.75rem; font-weight: 600;
+  font-size: 0.72rem; font-weight: 600;
   position: sticky; top: 0;
   background: var(--bg2); z-index: 10;
+  height: 38px; line-height: 38px;
 }
 .tg-day-head.today-head { color: var(--accent); }
 
@@ -1902,7 +1910,7 @@ function renderTimeGrid() {
     col.appendChild(head);
 
     const cellsWrap = document.createElement('div');
-    cellsWrap.style.position = 'relative';
+    cellsWrap.style.cssText = 'position:relative; overflow:hidden;';
 
     // 10분 단위 슬롯 (144개)
     for (let slot = 0; slot < TOTAL_SLOTS; slot++) {
