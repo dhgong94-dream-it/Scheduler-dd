@@ -438,13 +438,12 @@ body {
 
 .tg-time-col { }
 .tg-time-cell {
-  height: 40px;
-  border-bottom: 1px solid var(--border);
-  padding: 2px 6px 0 0;
+  height: 16px;
+  padding: 0 4px 0 0;
   text-align: right;
-  font-size: 0.68rem; color: var(--text3);
-  position: relative; top: -6px;
+  font-size: 0.64rem; color: var(--text3);
   user-select: none;
+  line-height: 16px;
 }
 
 .tg-day-col {
@@ -461,11 +460,12 @@ body {
 .tg-day-head.today-head { color: var(--accent); }
 
 .tg-cell {
-  height: 40px;
-  border-bottom: 1px solid var(--border);
+  height: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
   position: relative;
   cursor: crosshair;
-  transition: background 0.08s;
+  transition: background 0.06s;
+  user-select: none;
 }
 .tg-cell:hover { background: rgba(124,106,247,0.06); }
 
@@ -765,7 +765,7 @@ body {
 }
 .btn-clear-day:hover { color: var(--red); border-color: var(--red); }
 .day-tracker-hint { font-size: 0.68rem; color: var(--text3); padding: 0 12px 6px; }
-.day-tg { display: grid; grid-template-columns: 38px 1fr; position: relative; }
+.day-tg { display: flex; position: relative; }
 .day-tg-time {
   font-size: 0.66rem; color: var(--text3); text-align: right;
   padding: 2px 6px 0 0; height: 36px;
@@ -775,8 +775,8 @@ body {
 }
 .day-tg-cell-col { position: relative; }
 .day-tg-cell {
-  height: 36px; border-bottom: 1px solid var(--border);
-  cursor: crosshair; transition: background 0.08s;
+  height: 16px; border-bottom: 1px solid rgba(255,255,255,0.03);
+  cursor: crosshair; transition: background 0.06s; user-select:none;
 }
 .day-tg-cell:hover { background: rgba(124,106,247,0.07); }
 .day-tg-block {
@@ -1273,7 +1273,9 @@ let tgDragging = false;
 let tgDragDay = -1;
 let tgDragStart = -1;
 let tgDragEnd = -1;
-const CELL_HEIGHT = 40;
+const CELL_HEIGHT = 16; // 10분 = 16px, 1시간 = 96px
+const SLOTS_PER_HOUR = 6; // 10분 단위
+const TOTAL_SLOTS = 24 * 6; // 144 슬롯
 const HOURS = Array.from({length: 24}, (_, i) => i);
 const DAYS = ['일','월','화','수','목','금','토'];
 
@@ -1866,12 +1868,22 @@ function renderTimeGrid() {
   topSpacer.style.height = '38px';
   topSpacer.style.borderBottom = '1px solid var(--border)';
   timeCol.appendChild(topSpacer);
-  HOURS.forEach(h => {
+  for (let slot = 0; slot < TOTAL_SLOTS; slot++) {
     const cell = document.createElement('div');
     cell.className = 'tg-time-cell';
-    cell.textContent = h === 0 ? '' : `${String(h).padStart(2,'0')}:00`;
+    cell.style.height = CELL_HEIGHT + 'px';
+    cell.style.borderBottom = slot % SLOTS_PER_HOUR === SLOTS_PER_HOUR-1 ? '1px solid var(--border2)' : '1px solid transparent';
+    if (slot % SLOTS_PER_HOUR === 0) {
+      const h = slot / SLOTS_PER_HOUR;
+      cell.textContent = h === 0 ? '' : String(h).padStart(2,'0') + ':00';
+      cell.style.fontSize = '0.66rem';
+      cell.style.color = 'var(--text3)';
+      cell.style.textAlign = 'right';
+      cell.style.paddingRight = '4px';
+      cell.style.borderTop = '1px solid var(--border2)';
+    }
     timeCol.appendChild(cell);
-  });
+  }
   grid.appendChild(timeCol);
 
   // Day columns
@@ -1892,38 +1904,39 @@ function renderTimeGrid() {
     const cellsWrap = document.createElement('div');
     cellsWrap.style.position = 'relative';
 
-    HOURS.forEach(h => {
+    // 10분 단위 슬롯 (144개)
+    for (let slot = 0; slot < TOTAL_SLOTS; slot++) {
       const cell = document.createElement('div');
       cell.className = 'tg-cell';
-      cell.dataset.day = di;
-      cell.dataset.hour = h;
+      // 정시만 굵은 선
+      if (slot % SLOTS_PER_HOUR === 0) cell.style.borderTop = '1px solid var(--border2)';
+      cell.dataset.slot = slot;
       cellsWrap.appendChild(cell);
-    });
+    }
 
-    // Drag logic
-    let dragStartHour = -1;
+    // 좌클릭 드래그
+    let dragStartSlot = -1;
     let dragPreview = null;
 
     cellsWrap.addEventListener('mousedown', e => {
-      if (e.button !== 2) return; // right click only
+      if (e.button !== 0) return;
       e.preventDefault();
       const rect = cellsWrap.getBoundingClientRect();
-      dragStartHour = Math.floor((e.clientY - rect.top) / CELL_HEIGHT);
+      dragStartSlot = Math.floor((e.clientY - rect.top) / CELL_HEIGHT);
       tgDragging = true; tgDragDay = di;
     });
 
     cellsWrap.addEventListener('mousemove', e => {
-      if (!tgDragging || tgDragDay !== di) return;
+      if (!tgDragging || tgDragDay !== di || e.buttons !== 1) return;
       e.preventDefault();
       const rect = cellsWrap.getBoundingClientRect();
-      const curHour = Math.floor((e.clientY - rect.top) / CELL_HEIGHT);
-      tgDragEnd = Math.max(dragStartHour, curHour);
-      const s = Math.min(dragStartHour, tgDragEnd);
-      const en = Math.max(dragStartHour, tgDragEnd);
+      const cur = Math.floor((e.clientY - rect.top) / CELL_HEIGHT);
+      const s = Math.min(dragStartSlot, cur);
+      const en = Math.max(dragStartSlot, cur);
       if (dragPreview) dragPreview.remove();
       dragPreview = document.createElement('div');
       dragPreview.className = 'tg-drag-preview';
-      dragPreview.style.cssText = `top:${s * CELL_HEIGHT}px; height:${(en - s + 1) * CELL_HEIGHT}px;`;
+      dragPreview.style.cssText = `top:${s*CELL_HEIGHT}px; height:${(en-s+1)*CELL_HEIGHT}px;`;
       cellsWrap.appendChild(dragPreview);
     });
 
@@ -1932,16 +1945,18 @@ function renderTimeGrid() {
       if (dragPreview) { dragPreview.remove(); dragPreview = null; }
       tgDragging = false;
       const rect = cellsWrap.getBoundingClientRect();
-      const endHour = Math.floor((e.clientY - rect.top) / CELL_HEIGHT);
-      const s = Math.min(dragStartHour, endHour);
-      const en = Math.max(dragStartHour, endHour);
-      dragStartHour = -1;
-      if (s < 0 || en >= 24) return;
+      const endSlot = Math.floor((e.clientY - rect.top) / CELL_HEIGHT);
+      const s = Math.min(dragStartSlot, endSlot);
+      const en = Math.max(dragStartSlot, endSlot);
+      dragStartSlot = -1;
+      if (s < 0 || en >= TOTAL_SLOTS) return;
       pendingBlock = { dayCol: di, startCell: s, endCell: en, wk };
       openBlockModal();
     });
 
-    // Right-click context cancel
+    cellsWrap.addEventListener('mouseleave', () => {
+      if (dragPreview) { dragPreview.remove(); dragPreview = null; }
+    });
     cellsWrap.addEventListener('contextmenu', e => e.preventDefault());
 
     // Render existing blocks
@@ -1949,8 +1964,16 @@ function renderTimeGrid() {
     wkDayBlocks.forEach((block, bi) => {
       const el = document.createElement('div');
       el.className = 'tg-block';
-      el.style.cssText = `top:${block.startCell * CELL_HEIGHT}px; height:${(block.endCell - block.startCell + 1) * CELL_HEIGHT}px; background:${block.color}22; color:${block.color}; border-left: 3px solid ${block.color};`;
-      el.innerHTML = `<span>${block.label || ''}</span><span class="block-del" onclick="deleteBlock('${wk}',${di},${bi},event)">✕</span>`;
+      const startMin = block.startCell * 10;
+      const endMin = (block.endCell + 1) * 10;
+      const dur = endMin - startMin;
+      const sh = String(Math.floor(startMin/60)).padStart(2,'0');
+      const sm = String(startMin%60).padStart(2,'0');
+      const eh = String(Math.floor(endMin/60)).padStart(2,'0');
+      const em = String(endMin%60).padStart(2,'0');
+      const timeLabel = dur < 60 ? \`\${dur}분\` : \`\${Math.floor(dur/60)}h\${dur%60?dur%60+'m':''}\`;
+      el.style.cssText = \`top:\${block.startCell*CELL_HEIGHT}px; height:\${(block.endCell-block.startCell+1)*CELL_HEIGHT}px; background:\${block.color}22; color:\${block.color}; border-left:3px solid \${block.color};\`;
+      el.innerHTML = \`<span>\${block.label||''} <small style="opacity:0.7">\${timeLabel}</small></span><span class="block-del" onclick="deleteBlock('\${wk}',\${di},\${bi},event)">✕</span>\`;
       cellsWrap.appendChild(el);
     });
 
@@ -2188,7 +2211,7 @@ function dmDeleteTodo(id) {
 }
 
 // ── Day Time Tracker ──
-const DAY_CELL_H = 36;
+const DAY_CELL_H = 16; // 10분 = 16px
 
 function renderDayTg() {
   const tg = document.getElementById('day-tg');
@@ -2197,12 +2220,16 @@ function renderDayTg() {
   const now = new Date();
   const isToday = dmDateStr === fmtDate(now);
 
-  // time col
+  // time col (10분 단위 144슬롯)
   const timeCol = document.createElement('div');
-  for (let h = 0; h < 24; h++) {
+  timeCol.style.cssText = 'width:38px; flex-shrink:0;';
+  for (let slot = 0; slot < TOTAL_SLOTS; slot++) {
     const cell = document.createElement('div');
-    cell.className = 'day-tg-time';
-    cell.textContent = h === 0 ? '' : String(h).padStart(2,'0') + ':00';
+    cell.style.cssText = `height:${DAY_CELL_H}px; text-align:right; padding:0 5px 0 0; font-size:0.62rem; color:var(--text3); line-height:${DAY_CELL_H}px; user-select:none; border-top: ${slot%SLOTS_PER_HOUR===0 ? '1px solid var(--border2)' : 'none'};`;
+    if (slot % SLOTS_PER_HOUR === 0) {
+      const h = slot / SLOTS_PER_HOUR;
+      cell.textContent = h === 0 ? '' : String(h).padStart(2,'0') + ':00';
+    }
     timeCol.appendChild(cell);
   }
   tg.appendChild(timeCol);
@@ -2210,12 +2237,14 @@ function renderDayTg() {
   // cell col
   const cellCol = document.createElement('div');
   cellCol.className = 'day-tg-cell-col';
-  cellCol.style.position = 'relative';
+  cellCol.style.cssText = 'position:relative; flex:1;';
 
-  for (let h = 0; h < 24; h++) {
+  for (let slot = 0; slot < TOTAL_SLOTS; slot++) {
     const cell = document.createElement('div');
     cell.className = 'day-tg-cell';
-    cell.dataset.hour = h;
+    cell.style.height = DAY_CELL_H + 'px';
+    if (slot % SLOTS_PER_HOUR === 0) cell.style.borderTop = '1px solid var(--border2)';
+    cell.dataset.slot = slot;
     cellCol.appendChild(cell);
   }
 
@@ -2224,7 +2253,7 @@ function renderDayTg() {
     const totalMin = now.getHours() * 60 + now.getMinutes();
     const line = document.createElement('div');
     line.className = 'day-current-line';
-    line.style.top = (totalMin / 60 * DAY_CELL_H) + 'px';
+    line.style.top = (totalMin / 10 * DAY_CELL_H) + 'px';
     cellCol.appendChild(line);
   }
 
@@ -2233,16 +2262,16 @@ function renderDayTg() {
     addDayBlock(cellCol, block, bi);
   });
 
-  // drag events — right click drag
+  // 좌클릭 드래그
   cellCol.addEventListener('mousedown', e => {
-    if (e.button !== 2) return;
+    if (e.button !== 0) return;
     e.preventDefault();
     const rect = cellCol.getBoundingClientRect();
     dmDragStart = Math.floor((e.clientY - rect.top) / DAY_CELL_H);
     dmDragging = true;
   });
   cellCol.addEventListener('mousemove', e => {
-    if (!dmDragging || e.buttons !== 2) return;
+    if (!dmDragging || e.buttons !== 1) return;
     e.preventDefault();
     const rect = cellCol.getBoundingClientRect();
     const cur = Math.floor((e.clientY - rect.top) / DAY_CELL_H);
@@ -2263,15 +2292,15 @@ function renderDayTg() {
     const s = Math.min(dmDragStart, cur);
     const en = Math.max(dmDragStart, cur);
     dmDragStart = -1;
-    if (s < 0 || en >= 24) return;
+    if (s < 0 || en >= TOTAL_SLOTS) return;
     pendingBlock = { dateStr: dmDateStr, startCell: s, endCell: en, isDayModal: true };
     openBlockModal();
   });
-  cellCol.addEventListener('contextmenu', e => e.preventDefault());
   cellCol.addEventListener('mouseleave', () => {
     if (dmDragPreview) { dmDragPreview.remove(); dmDragPreview = null; }
     dmDragging = false;
   });
+  cellCol.addEventListener('contextmenu', e => e.preventDefault());
 
   tg.appendChild(cellCol);
 }
@@ -2279,8 +2308,12 @@ function renderDayTg() {
 function addDayBlock(col, block, bi) {
   const el = document.createElement('div');
   el.className = 'day-tg-block';
+  const startMin = block.startCell * 10;
+  const endMin = (block.endCell + 1) * 10;
+  const dur = endMin - startMin;
+  const timeLabel = dur < 60 ? `${dur}분` : `${Math.floor(dur/60)}h${dur%60?dur%60+'m':''}`;
   el.style.cssText = `top:${block.startCell*DAY_CELL_H}px; height:${(block.endCell-block.startCell+1)*DAY_CELL_H}px; background:${block.color}22; color:${block.color}; border-left:3px solid ${block.color};`;
-  el.innerHTML = `<span>${block.label||''}</span><span class="dblock-del" onclick="deleteDayBlock(${bi},event)">✕</span>`;
+  el.innerHTML = `<span>${block.label||''} <small style="opacity:0.65">${timeLabel}</small></span><span class="dblock-del" onclick="deleteDayBlock(${bi},event)">✕</span>`;
   col.appendChild(el);
 }
 
