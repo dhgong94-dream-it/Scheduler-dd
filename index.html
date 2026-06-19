@@ -705,6 +705,185 @@ body {
   background: var(--red);
 }
 
+
+/* ── DAY MODAL ── */
+.day-modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 500; display: none;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.day-modal-backdrop.open { display: flex; }
+.day-modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  width: 100%; max-width: 920px;
+  max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.day-modal-head {
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; justify-content: space-between;
+  flex-shrink: 0;
+}
+.day-modal-title {
+  font-size: 2rem; font-weight: 800;
+  letter-spacing: -0.03em; font-style: italic; color: var(--text);
+}
+.day-modal-date { font-size: 0.82rem; color: var(--text3); margin-top: 4px; letter-spacing: 0.05em; }
+.day-modal-close {
+  background: none; border: none; color: var(--text3);
+  font-size: 1.3rem; cursor: pointer; padding: 4px;
+  border-radius: 6px; transition: all 0.15s; line-height: 1;
+}
+.day-modal-close:hover { background: var(--bg3); color: var(--text); }
+.day-modal-body {
+  display: grid; grid-template-columns: 400px 1fr;
+  flex: 1; overflow: hidden;
+}
+.day-tracker-col {
+  border-right: 1px solid var(--border);
+  overflow-y: auto; padding: 12px 0;
+}
+.day-tracker-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px 8px; flex-wrap: wrap;
+}
+.day-tracker-title {
+  font-size: 0.72rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); flex:1;
+}
+.btn-clear-day {
+  background: none; border: 1px solid var(--border);
+  border-radius: 6px; padding: 3px 9px;
+  color: var(--text3); font-size: 0.7rem; cursor: pointer; transition: all 0.15s;
+}
+.btn-clear-day:hover { color: var(--red); border-color: var(--red); }
+.day-tracker-hint { font-size: 0.68rem; color: var(--text3); padding: 0 12px 6px; }
+.day-tg { display: grid; grid-template-columns: 38px 1fr; position: relative; }
+.day-tg-time {
+  font-size: 0.66rem; color: var(--text3); text-align: right;
+  padding: 2px 6px 0 0; height: 36px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start;
+  position: relative; top: -6px; user-select: none;
+}
+.day-tg-cell-col { position: relative; }
+.day-tg-cell {
+  height: 36px; border-bottom: 1px solid var(--border);
+  cursor: crosshair; transition: background 0.08s;
+}
+.day-tg-cell:hover { background: rgba(124,106,247,0.07); }
+.day-tg-block {
+  position: absolute; left: 2px; right: 2px;
+  border-radius: 5px; padding: 2px 6px;
+  font-size: 0.68rem; font-weight: 500;
+  overflow: hidden; cursor: pointer; z-index: 5;
+}
+.day-tg-block .dblock-del {
+  position: absolute; top: 1px; right: 3px;
+  font-size: 0.6rem; opacity: 0; cursor: pointer;
+  background: rgba(0,0,0,0.35); border-radius: 3px; padding: 0 2px;
+}
+.day-tg-block:hover .dblock-del { opacity: 1; }
+.day-tg-drag-preview {
+  position: absolute; left: 2px; right: 2px; border-radius: 5px;
+  background: var(--accent-soft); border: 2px dashed var(--accent);
+  z-index: 20; pointer-events: none;
+}
+.day-current-line {
+  position: absolute; left: 0; right: 0; height: 2px;
+  background: var(--red); z-index: 15; pointer-events: none;
+}
+.day-current-line::before {
+  content: ''; position: absolute; left: -4px; top: -4px;
+  width: 10px; height: 10px; border-radius: 50%; background: var(--red);
+}
+.day-right-col { display: flex; flex-direction: column; overflow: hidden; }
+.day-todo-section {
+  padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.day-todo-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.day-todo-count { font-size: 0.82rem; color: var(--text2); flex: 1; }
+.day-todo-count span { color: var(--text); font-weight: 600; }
+.btn-add-todo-day {
+  background: var(--green); border: none; border-radius: 8px;
+  padding: 5px 12px; color: #fff; font-size: 0.76rem; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-add-todo-day:hover { background: #2db87a; }
+.btn-fold {
+  background: none; border: 1px solid var(--border); border-radius: 6px;
+  padding: 4px 9px; color: var(--text3); font-size: 0.73rem;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-fold:hover { background: var(--bg3); color: var(--text); }
+.day-todo-input-row { display: flex; gap: 6px; margin-bottom: 6px; }
+.day-todo-list { max-height: 150px; overflow-y: auto; }
+.day-todo-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 5px 6px; border-radius: 7px; cursor: pointer; transition: background 0.12s;
+}
+.day-todo-item:hover { background: var(--bg3); }
+.day-todo-item.done { opacity: 0.45; }
+.day-todo-item.done .day-todo-text { text-decoration: line-through; }
+.day-todo-check {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 1.5px solid var(--border2); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.58rem; transition: all 0.15s;
+}
+.day-todo-item.done .day-todo-check { background: var(--green); border-color: var(--green); color: #fff; }
+.day-todo-text { font-size: 0.8rem; flex: 1; }
+.day-todo-del {
+  opacity: 0; background: none; border: none;
+  color: var(--red); cursor: pointer; font-size: 0.82rem;
+}
+.day-todo-item:hover .day-todo-del { opacity: 1; }
+.day-memo-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.day-memo-tabs {
+  display: flex; border-bottom: 1px solid var(--border);
+  padding: 0 16px; flex-shrink: 0;
+}
+.day-memo-tab {
+  background: none; border: none; padding: 10px 12px;
+  font-size: 0.8rem; color: var(--text3); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s;
+}
+.day-memo-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+.day-memo-tab:hover:not(.active) { color: var(--text2); }
+.day-memo-content { flex: 1; overflow-y: auto; padding: 14px 16px; }
+.day-memo-textarea {
+  width: 100%; min-height: 220px; background: transparent; border: none; outline: none;
+  color: var(--text); font-size: 0.87rem; line-height: 1.75; resize: none; font-family: inherit;
+}
+.day-memo-textarea::placeholder { color: var(--text3); }
+.kpt-section { margin-bottom: 14px; }
+.kpt-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; margin-bottom: 5px; display: block;
+}
+.kpt-keep { color: var(--green); }
+.kpt-problem { color: var(--red); }
+.kpt-try { color: var(--accent); }
+.kpt-textarea {
+  width: 100%; min-height: 68px; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px;
+  color: var(--text); font-size: 0.82rem; line-height: 1.6;
+  resize: none; outline: none; font-family: inherit; transition: border 0.15s;
+}
+.kpt-textarea:focus { border-color: var(--accent); }
+.kpt-textarea::placeholder { color: var(--text3); }
+.day-memo-save {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 10px 16px; border-top: 1px solid var(--border); flex-shrink: 0;
+}
+
 /* Habit page placeholder */
 .empty-state {
   text-align: center; padding: 60px 20px;
@@ -938,6 +1117,81 @@ body {
   </div>
 </div>
 
+
+<!-- Day Detail Modal -->
+<div class="day-modal-backdrop" id="day-modal">
+  <div class="day-modal">
+    <div class="day-modal-head">
+      <div>
+        <div class="day-modal-title" id="dm-title">Day 24</div>
+        <div class="day-modal-date" id="dm-date">2026 . 06 . 24</div>
+      </div>
+      <button class="day-modal-close" onclick="closeDayModal()">✕</button>
+    </div>
+    <div class="day-modal-body">
+      <!-- Left: Time Tracker -->
+      <div class="day-tracker-col">
+        <div class="day-tracker-header">
+          <span class="day-tracker-title">TIME TRACKER</span>
+          <button class="btn-clear-day" onclick="clearDayBlocks()">🖌 회색 블록 삭제</button>
+        </div>
+        <div class="day-tracker-hint">(빈 칸을 드래그해 색칠하세요. 스크롤은 왼쪽 시간표 숫자를 밀어주세요!)</div>
+        <div class="day-tg" id="day-tg"></div>
+      </div>
+      <!-- Right -->
+      <div class="day-right-col">
+        <!-- Todo -->
+        <div class="day-todo-section">
+          <div class="day-todo-header">
+            <div class="day-todo-count">✅ 오늘 할 일 (<span id="dm-todo-count">0</span>개 남음)</div>
+            <button class="btn-add-todo-day" onclick="toggleDmTodoInput()">+ 일정 추가</button>
+            <button class="btn-fold" id="dm-fold-btn" onclick="toggleDmTodoList()">접기 ▲</button>
+          </div>
+          <div id="dm-todo-input-wrap" style="display:none;">
+            <div class="day-todo-input-row">
+              <input class="todo-input" id="dm-todo-input" placeholder="할 일 추가..." onkeydown="if(event.key==='Enter')addDmTodo()">
+              <button class="btn-icon" onclick="addDmTodo()">+</button>
+            </div>
+          </div>
+          <div class="day-todo-list" id="dm-todo-list"></div>
+        </div>
+        <!-- Memo tabs -->
+        <div class="day-memo-section">
+          <div class="day-memo-tabs">
+            <button class="day-memo-tab active" onclick="switchMemoTab('diary', this)">오늘 기록 📝</button>
+            <button class="day-memo-tab" onclick="switchMemoTab('kpt', this)">KPT 성찰 ✨</button>
+          </div>
+          <div class="day-memo-content" id="dm-memo-content">
+            <!-- diary -->
+            <div id="dm-diary-panel">
+              <textarea class="day-memo-textarea" id="dm-diary" placeholder="자유롭게 기록해보세요..."></textarea>
+            </div>
+            <!-- kpt -->
+            <div id="dm-kpt-panel" style="display:none;">
+              <div class="kpt-section">
+                <span class="kpt-label kpt-keep">✅ Keep — 잘 한 것</span>
+                <textarea class="kpt-textarea" id="dm-keep" placeholder="오늘 잘 한 점, 계속 유지할 것..."></textarea>
+              </div>
+              <div class="kpt-section">
+                <span class="kpt-label kpt-problem">❌ Problem — 문제점</span>
+                <textarea class="kpt-textarea" id="dm-problem" placeholder="오늘 아쉬웠던 점, 문제가 된 것..."></textarea>
+              </div>
+              <div class="kpt-section">
+                <span class="kpt-label kpt-try">🚀 Try — 다음에 시도할 것</span>
+                <textarea class="kpt-textarea" id="dm-try" placeholder="내일 혹은 다음에 시도해볼 것..."></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="day-memo-save">
+            <button class="btn-cancel" onclick="closeDayModal()">닫기</button>
+            <button class="btn-save" onclick="saveDayMemo()">💾 저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Context Menu -->
 <div class="ctx-menu" id="ctx-menu">
   <div class="ctx-item" onclick="ctxAction('edit')">✏️ 편집</div>
@@ -1054,7 +1308,7 @@ auth.onAuthStateChanged(user => {
     if (user.photoURL) {
       document.getElementById('user-avatar').innerHTML = `<img src="${user.photoURL}">`;
     }
-    loadData();
+    loadDayData();
   } else {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
@@ -1239,7 +1493,7 @@ function addCalCell(container, date, other, today) {
   if (sameDay(date, today)) cls += ' today';
   cell.className = cls;
   cell.innerHTML = `<div class="cal-day-num">${date.getDate()}</div>`;
-  cell.onclick = () => { selectedDate = date; openEventModal(dateStr); };
+  cell.onclick = () => { selectedDate = date; openDayModal(dateStr); };
 
   const dayEvents = events.filter(e => e.date === dateStr);
   const dayTodos = todos.filter(t => t.date === dateStr && !t.done);
@@ -1691,8 +1945,8 @@ function renderTimeGrid() {
     cellsWrap.addEventListener('contextmenu', e => e.preventDefault());
 
     // Render existing blocks
-    const dayBlocks = weekBlocks[di] || [];
-    dayBlocks.forEach((block, bi) => {
+    const wkDayBlocks = weekBlocks[di] || [];
+    wkDayBlocks.forEach((block, bi) => {
       const el = document.createElement('div');
       el.className = 'tg-block';
       el.style.cssText = `top:${block.startCell * CELL_HEIGHT}px; height:${(block.endCell - block.startCell + 1) * CELL_HEIGHT}px; background:${block.color}22; color:${block.color}; border-left: 3px solid ${block.color};`;
@@ -1719,12 +1973,20 @@ function closeBlockModal() {
 function confirmBlock() {
   if (!pendingBlock) return;
   const label = document.getElementById('bm-label').value.trim();
-  const {dayCol, startCell, endCell, wk} = pendingBlock;
-  if (!trackerBlocks[wk]) trackerBlocks[wk] = {};
-  if (!trackerBlocks[wk][dayCol]) trackerBlocks[wk][dayCol] = [];
-  trackerBlocks[wk][dayCol].push({startCell, endCell, color: selectedBlockColor, label});
-  closeBlockModal();
-  saveData(); renderTimeGrid(); toast('블록이 저장되었습니다');
+  if (pendingBlock.isDayModal) {
+    const {dateStr, startCell, endCell} = pendingBlock;
+    if (!dayBlocks[dateStr]) dayBlocks[dateStr] = [];
+    dayBlocks[dateStr].push({startCell, endCell, color: selectedBlockColor, label});
+    closeBlockModal();
+    saveDayData(); renderDayTg(); toast('블록이 저장되었습니다');
+  } else {
+    const {dayCol, startCell, endCell, wk} = pendingBlock;
+    if (!trackerBlocks[wk]) trackerBlocks[wk] = {};
+    if (!trackerBlocks[wk][dayCol]) trackerBlocks[wk][dayCol] = [];
+    trackerBlocks[wk][dayCol].push({startCell, endCell, color: selectedBlockColor, label});
+    closeBlockModal();
+    saveData(); renderTimeGrid(); toast('블록이 저장되었습니다');
+  }
 }
 
 function deleteBlock(wk, dayCol, bi, e) {
@@ -1816,6 +2078,250 @@ function updateTimerDisplay() {
   const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
   const s = String(timerSeconds % 60).padStart(2, '0');
   document.getElementById('timer-display').textContent = `${h}:${m}:${s}`;
+}
+
+
+// ============================================================
+// DAY MODAL
+// ============================================================
+let dmDateStr = '';
+let dmTodoListVisible = true;
+let dmMemoTab = 'diary';
+let dmDragStart = -1;
+let dmDragging = false;
+let dmDragPreview = null;
+
+// dayMemos: { dateStr: { diary, keep, problem, try } }
+let dayMemos = {};
+// dayBlocks: { dateStr: [{startCell, endCell, color, label}] }
+let dayBlocks = {};
+
+async function loadDayData() {
+  try {
+    const doc = await userRef().get();
+    if (doc.exists) {
+      const d = doc.data();
+      events = d.events || [];
+      todos = d.todos || [];
+      trackerBlocks = d.trackerBlocks || {};
+      dayMemos = d.dayMemos || {};
+      dayBlocks = d.dayBlocks || {};
+    }
+  } catch(e) { toast('데이터 로드 실패: ' + e.message); }
+  renderAll();
+}
+
+function saveDayData() {
+  if (!currentUser) return;
+  userRef().set({ events, todos, trackerBlocks, dayMemos, dayBlocks }, { merge: true })
+    .catch(e => toast('저장 실패: ' + e.message));
+}
+
+function openDayModal(dateStr) {
+  dmDateStr = dateStr;
+  const d = new Date(dateStr + 'T00:00:00');
+  document.getElementById('dm-title').textContent = 'Day ' + d.getDate();
+  const yy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  document.getElementById('dm-date').textContent = yy + ' . ' + mm + ' . ' + dd;
+
+  renderDmTodoList();
+  renderDayTg();
+  loadDayMemoFields();
+  document.getElementById('day-modal').classList.add('open');
+}
+
+function closeDayModal() {
+  document.getElementById('day-modal').classList.remove('open');
+  dmDragging = false; dmDragStart = -1;
+}
+
+// ── Todo in day modal ──
+function toggleDmTodoInput() {
+  const wrap = document.getElementById('dm-todo-input-wrap');
+  wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+  if (wrap.style.display === 'block') setTimeout(() => document.getElementById('dm-todo-input').focus(), 50);
+}
+
+function toggleDmTodoList() {
+  dmTodoListVisible = !dmTodoListVisible;
+  document.getElementById('dm-todo-list').style.display = dmTodoListVisible ? 'block' : 'none';
+  document.getElementById('dm-fold-btn').textContent = dmTodoListVisible ? '접기 ▲' : '펼치기 ▼';
+}
+
+function addDmTodo() {
+  const input = document.getElementById('dm-todo-input');
+  const text = input.value.trim();
+  if (!text) return;
+  todos.push({ id: uid(), text, done: false, date: dmDateStr });
+  input.value = '';
+  document.getElementById('dm-todo-input-wrap').style.display = 'none';
+  saveDayData(); renderDmTodoList(); renderTodos(); renderSyncedTodos(); renderCalendar();
+}
+
+function renderDmTodoList() {
+  const dayTodos = todos.filter(t => t.date === dmDateStr);
+  const remaining = dayTodos.filter(t => !t.done).length;
+  document.getElementById('dm-todo-count').textContent = remaining;
+  const list = document.getElementById('dm-todo-list');
+  list.innerHTML = '';
+  dayTodos.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'day-todo-item' + (t.done ? ' done' : '');
+    item.innerHTML = `
+      <div class="day-todo-check">${t.done ? '✓' : ''}</div>
+      <span class="day-todo-text">${t.text}</span>
+      <button class="day-todo-del" onclick="event.stopPropagation();dmDeleteTodo('${t.id}')">✕</button>
+    `;
+    item.onclick = () => { toggleTodo(t.id); renderDmTodoList(); };
+    list.appendChild(item);
+  });
+  if (dayTodos.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:0.78rem;padding:10px;">할 일이 없어요 🎉</div>';
+  }
+}
+
+function dmDeleteTodo(id) {
+  todos = todos.filter(t => t.id !== id);
+  saveDayData(); renderDmTodoList(); renderTodos(); renderCalendar();
+}
+
+// ── Day Time Tracker ──
+const DAY_CELL_H = 36;
+
+function renderDayTg() {
+  const tg = document.getElementById('day-tg');
+  tg.innerHTML = '';
+  const blocks = dayBlocks[dmDateStr] || [];
+  const now = new Date();
+  const isToday = dmDateStr === fmtDate(now);
+
+  // time col
+  const timeCol = document.createElement('div');
+  for (let h = 0; h < 24; h++) {
+    const cell = document.createElement('div');
+    cell.className = 'day-tg-time';
+    cell.textContent = h === 0 ? '' : String(h).padStart(2,'0') + ':00';
+    timeCol.appendChild(cell);
+  }
+  tg.appendChild(timeCol);
+
+  // cell col
+  const cellCol = document.createElement('div');
+  cellCol.className = 'day-tg-cell-col';
+  cellCol.style.position = 'relative';
+
+  for (let h = 0; h < 24; h++) {
+    const cell = document.createElement('div');
+    cell.className = 'day-tg-cell';
+    cell.dataset.hour = h;
+    cellCol.appendChild(cell);
+  }
+
+  // current time line
+  if (isToday) {
+    const totalMin = now.getHours() * 60 + now.getMinutes();
+    const line = document.createElement('div');
+    line.className = 'day-current-line';
+    line.style.top = (totalMin / 60 * DAY_CELL_H) + 'px';
+    cellCol.appendChild(line);
+  }
+
+  // existing blocks
+  blocks.forEach((block, bi) => {
+    addDayBlock(cellCol, block, bi);
+  });
+
+  // drag events — right click drag
+  cellCol.addEventListener('mousedown', e => {
+    if (e.button !== 2) return;
+    e.preventDefault();
+    const rect = cellCol.getBoundingClientRect();
+    dmDragStart = Math.floor((e.clientY - rect.top) / DAY_CELL_H);
+    dmDragging = true;
+  });
+  cellCol.addEventListener('mousemove', e => {
+    if (!dmDragging || e.buttons !== 2) return;
+    e.preventDefault();
+    const rect = cellCol.getBoundingClientRect();
+    const cur = Math.floor((e.clientY - rect.top) / DAY_CELL_H);
+    const s = Math.min(dmDragStart, cur);
+    const en = Math.max(dmDragStart, cur);
+    if (dmDragPreview) dmDragPreview.remove();
+    dmDragPreview = document.createElement('div');
+    dmDragPreview.className = 'day-tg-drag-preview';
+    dmDragPreview.style.cssText = `top:${s*DAY_CELL_H}px; height:${(en-s+1)*DAY_CELL_H}px;`;
+    cellCol.appendChild(dmDragPreview);
+  });
+  cellCol.addEventListener('mouseup', e => {
+    if (!dmDragging) return;
+    if (dmDragPreview) { dmDragPreview.remove(); dmDragPreview = null; }
+    dmDragging = false;
+    const rect = cellCol.getBoundingClientRect();
+    const cur = Math.floor((e.clientY - rect.top) / DAY_CELL_H);
+    const s = Math.min(dmDragStart, cur);
+    const en = Math.max(dmDragStart, cur);
+    dmDragStart = -1;
+    if (s < 0 || en >= 24) return;
+    pendingBlock = { dateStr: dmDateStr, startCell: s, endCell: en, isDayModal: true };
+    openBlockModal();
+  });
+  cellCol.addEventListener('contextmenu', e => e.preventDefault());
+  cellCol.addEventListener('mouseleave', () => {
+    if (dmDragPreview) { dmDragPreview.remove(); dmDragPreview = null; }
+    dmDragging = false;
+  });
+
+  tg.appendChild(cellCol);
+}
+
+function addDayBlock(col, block, bi) {
+  const el = document.createElement('div');
+  el.className = 'day-tg-block';
+  el.style.cssText = `top:${block.startCell*DAY_CELL_H}px; height:${(block.endCell-block.startCell+1)*DAY_CELL_H}px; background:${block.color}22; color:${block.color}; border-left:3px solid ${block.color};`;
+  el.innerHTML = `<span>${block.label||''}</span><span class="dblock-del" onclick="deleteDayBlock(${bi},event)">✕</span>`;
+  col.appendChild(el);
+}
+
+function deleteDayBlock(bi, e) {
+  e.stopPropagation();
+  if (!dayBlocks[dmDateStr]) return;
+  dayBlocks[dmDateStr].splice(bi, 1);
+  saveDayData(); renderDayTg(); toast('블록 삭제됨');
+}
+
+function clearDayBlocks() {
+  if (!dayBlocks[dmDateStr]) return;
+  dayBlocks[dmDateStr] = (dayBlocks[dmDateStr]||[]).filter(b => b.color !== '#888');
+  saveDayData(); renderDayTg(); toast('회색 블록 삭제됨');
+}
+
+// ── Memo tabs ──
+function switchMemoTab(tab, btn) {
+  dmMemoTab = tab;
+  document.querySelectorAll('.day-memo-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('dm-diary-panel').style.display = tab === 'diary' ? 'block' : 'none';
+  document.getElementById('dm-kpt-panel').style.display = tab === 'kpt' ? 'block' : 'none';
+}
+
+function loadDayMemoFields() {
+  const memo = dayMemos[dmDateStr] || {};
+  document.getElementById('dm-diary').value = memo.diary || '';
+  document.getElementById('dm-keep').value = memo.keep || '';
+  document.getElementById('dm-problem').value = memo.problem || '';
+  document.getElementById('dm-try').value = memo.try || '';
+}
+
+function saveDayMemo() {
+  dayMemos[dmDateStr] = {
+    diary: document.getElementById('dm-diary').value,
+    keep: document.getElementById('dm-keep').value,
+    problem: document.getElementById('dm-problem').value,
+    try: document.getElementById('dm-try').value,
+  };
+  saveDayData(); toast('저장됐습니다 ✓'); closeDayModal();
 }
 
 // ============================================================
