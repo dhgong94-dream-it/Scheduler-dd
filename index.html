@@ -7,10 +7,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>My Workspace</title>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+<!-- Firebase 10.14 (Safari 호환 안정버전) -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
 <style>
 :root {
@@ -1306,7 +1306,15 @@ let ctxTarget = null;   // for context menu
 // ============================================================
 // AUTH
 // ============================================================
+
+// 8초 타임아웃 — Firebase 응답 없으면 로그인 화면으로
+const loadingTimeout = setTimeout(() => {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}, 8000);
+
 auth.onAuthStateChanged(user => {
+  clearTimeout(loadingTimeout);
   document.getElementById('loading').style.display = 'none';
   if (user) {
     currentUser = user;
