@@ -1987,9 +1987,9 @@ function renderTimeGrid() {
       const sm = String(startMin%60).padStart(2,'0');
       const eh = String(Math.floor(endMin/60)).padStart(2,'0');
       const em = String(endMin%60).padStart(2,'0');
-      const timeLabel = dur < 60 ? \`\${dur}분\` : \`\${Math.floor(dur/60)}h\${dur%60?dur%60+'m':''}\`;
-      el.style.cssText = \`top:\${block.startCell*CELL_HEIGHT}px; height:\${(block.endCell-block.startCell+1)*CELL_HEIGHT}px; background:\${block.color}22; color:\${block.color}; border-left:3px solid \${block.color};\`;
-      el.innerHTML = \`<span>\${block.label||''} <small style="opacity:0.7">\${timeLabel}</small></span><span class="block-del" onclick="deleteBlock('\${wk}',\${di},\${bi},event)">✕</span>\`;
+      const timeLabel = dur < 60 ? `${dur}분` : `${Math.floor(dur/60)}h${dur%60?dur%60+'m':''}`;
+      el.style.cssText = `top:${block.startCell*CELL_HEIGHT}px; height:${(block.endCell-block.startCell+1)*CELL_HEIGHT}px; background:${block.color}22; color:${block.color}; border-left:3px solid ${block.color};`;
+      el.innerHTML = `<span>${block.label||''} <small style="opacity:0.7">${timeLabel}</small></span><span class="block-del" onclick="deleteBlock('${wk}',${di},${bi},event)">✕</span>`;
       cellsWrap.appendChild(el);
     });
 
