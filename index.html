@@ -796,7 +796,7 @@ body {
 }
 
 /* 타임 그리드 */
-.day-tg { display: flex; position: relative; }
+.day-tg { display: block; width: 100%; }
 
 .day-tg-cell-col { position: relative; flex: 1; }
 .day-tg-cell {
@@ -2088,9 +2088,9 @@ function confirmBlock() {
   if (!pendingBlock) return;
   const label = document.getElementById('bm-label').value.trim();
   if (pendingBlock.isDayModal) {
-    const {dateStr, startCell, endCell} = pendingBlock;
+    const {dateStr, startHour, startCol, endHour, endCol} = pendingBlock;
     if (!dayBlocks[dateStr]) dayBlocks[dateStr] = [];
-    dayBlocks[dateStr].push({startCell, endCell, color: selectedBlockColor, label});
+    dayBlocks[dateStr].push({startHour, startCol, endHour, endCol, color: selectedBlockColor, label});
     closeBlockModal();
     saveDayData(); renderDayTg(); toast('블록이 저장되었습니다');
   } else {
@@ -2302,7 +2302,19 @@ function dmDeleteTodo(id) {
 }
 
 // ── Day Time Tracker ──
-const DAY_CELL_H = 16; // 10분 = 16px
+// 구조: 시간 레이블(세로) + 가로 6열 그리드
+// 1행 = 1시간, 각 행은 가로 6칸(10분 단위)
+const DAY_CELL_H = 32;   // 1시간 행 높이 px
+const DAY_COLS = 6;       // 가로 열 수 (10분 단위)
+
+// block 저장 형식 변경: {hour, col, color, label}
+// hour: 0~23, col: 0~5 (10분단위)
+// 드래그: 시작(hour,col) ~ 끝(hour,col) → 연속 블록
+
+let dmDragStartHour = -1;
+let dmDragStartCol = -1;
+let dmDragEndHour = -1;
+let dmDragEndCol = -1;
 
 function renderDayTg() {
   const tg = document.getElementById('day-tg');
@@ -2311,101 +2323,193 @@ function renderDayTg() {
   const now = new Date();
   const isToday = dmDateStr === fmtDate(now);
 
-  // time col (10분 단위 144슬롯)
+  // 전체 래퍼 (flex row: 시간레이블 + 그리드)
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'display:flex; flex-direction:row; width:100%; user-select:none;';
+
+  // ── 시간 레이블 컬럼 ──
   const timeCol = document.createElement('div');
-  timeCol.style.cssText = 'width:38px; flex-shrink:0;';
-  for (let slot = 0; slot < TOTAL_SLOTS; slot++) {
-    const cell = document.createElement('div');
-    cell.style.cssText = `height:${DAY_CELL_H}px; text-align:right; padding:0 8px 0 0; font-size:0.62rem; color:#999; line-height:${DAY_CELL_H}px; user-select:none; border-top: ${slot%SLOTS_PER_HOUR===0 ? '1px solid #ddd9d0' : 'none'};`;
-    if (slot % SLOTS_PER_HOUR === 0) {
-      const h = slot / SLOTS_PER_HOUR;
-      cell.textContent = h === 0 ? '' : String(h).padStart(2,'0') + ':00';
+  timeCol.style.cssText = 'width:40px; flex-shrink:0; padding-top:0;';
+  for (let h = 0; h < 24; h++) {
+    const lbl = document.createElement('div');
+    lbl.style.cssText = `height:${DAY_CELL_H}px; line-height:${DAY_CELL_H}px; text-align:right; padding-right:8px; font-size:0.64rem; color:#999; border-top:1px solid #ddd9d0; box-sizing:border-box;`;
+    lbl.textContent = h === 0 ? '' : String(h).padStart(2,'0') + ':00';
+    timeCol.appendChild(lbl);
+  }
+  wrap.appendChild(timeCol);
+
+  // ── 그리드 (24행 × 6열) ──
+  const gridWrap = document.createElement('div');
+  gridWrap.style.cssText = 'position:relative; flex:1; display:grid; grid-template-columns: repeat(6,1fr);';
+
+  // 셀 생성 (행=시간, 열=10분단위)
+  for (let h = 0; h < 24; h++) {
+    for (let c = 0; c < DAY_COLS; c++) {
+      const cell = document.createElement('div');
+      const isHourStart = c === 0;
+      const isColEnd = c === DAY_COLS - 1;
+      cell.dataset.hour = h;
+      cell.dataset.col = c;
+      cell.style.cssText = `
+        height:${DAY_CELL_H}px;
+        border-top:${isHourStart ? '1px solid #ddd9d0' : '1px solid transparent'};
+        border-right:${isColEnd ? 'none' : '1px dashed #e5e0d8'};
+        box-sizing:border-box;
+        cursor:crosshair;
+        transition:background 0.06s;
+      `;
+      gridWrap.appendChild(cell);
     }
-    timeCol.appendChild(cell);
-  }
-  tg.appendChild(timeCol);
-
-  // cell col
-  const cellCol = document.createElement('div');
-  cellCol.className = 'day-tg-cell-col';
-  cellCol.style.cssText = 'position:relative; flex:1;';
-
-  for (let slot = 0; slot < TOTAL_SLOTS; slot++) {
-    const cell = document.createElement('div');
-    cell.className = 'day-tg-cell';
-    cell.style.height = DAY_CELL_H + 'px';
-    if (slot % SLOTS_PER_HOUR === 0) cell.style.borderTop = '1px solid var(--border2)';
-    cell.dataset.slot = slot;
-    cellCol.appendChild(cell);
   }
 
-  // current time line
+  // 현재 시간 선
   if (isToday) {
     const totalMin = now.getHours() * 60 + now.getMinutes();
+    const topPx = totalMin / 60 * DAY_CELL_H;
     const line = document.createElement('div');
-    line.className = 'day-current-line';
-    line.style.top = (totalMin / 10 * DAY_CELL_H) + 'px';
-    cellCol.appendChild(line);
+    line.style.cssText = `position:absolute; left:0; right:0; top:${topPx}px; height:2px; background:#e05555; z-index:15; pointer-events:none;`;
+    const dot = document.createElement('div');
+    dot.style.cssText = 'position:absolute; left:-4px; top:-4px; width:10px; height:10px; border-radius:50%; background:#e05555;';
+    line.appendChild(dot);
+    gridWrap.appendChild(line);
   }
 
-  // existing blocks
-  blocks.forEach((block, bi) => {
-    addDayBlock(cellCol, block, bi);
-  });
+  // 기존 블록 렌더링
+  blocks.forEach((block, bi) => addDayBlock(gridWrap, block, bi));
 
-  // 좌클릭 드래그
-  cellCol.addEventListener('mousedown', e => {
+  // ── 드래그 ──
+  let preview = null;
+
+  function slotFromEvent(e) {
+    const rect = gridWrap.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const x = e.clientX - rect.left;
+    const h = Math.max(0, Math.min(23, Math.floor(y / DAY_CELL_H)));
+    const c = Math.max(0, Math.min(DAY_COLS-1, Math.floor(x / (rect.width / DAY_COLS))));
+    return {h, c};
+  }
+
+  function slotToIndex(h, c) { return h * DAY_COLS + c; }
+
+  function updatePreview() {
+    if (preview) preview.remove();
+    const s = slotToIndex(dmDragStartHour, dmDragStartCol);
+    const e2 = slotToIndex(dmDragEndHour, dmDragEndCol);
+    const sIdx = Math.min(s, e2);
+    const eIdx = Math.max(s, e2);
+    const sH = Math.floor(sIdx / DAY_COLS);
+    const sC = sIdx % DAY_COLS;
+    const eH = Math.floor(eIdx / DAY_COLS);
+    const eC = eIdx % DAY_COLS;
+    const rect = gridWrap.getBoundingClientRect();
+    const colW = rect.width / DAY_COLS;
+
+    if (sH === eH) {
+      // 같은 행
+      preview = document.createElement('div');
+      preview.style.cssText = `position:absolute; top:${sH*DAY_CELL_H}px; left:${sC*colW}px; width:${(eC-sC+1)*colW}px; height:${DAY_CELL_H}px; background:rgba(100,160,100,0.18); border:2px dashed #6aaa6a; border-radius:5px; pointer-events:none; z-index:20; box-sizing:border-box;`;
+      gridWrap.appendChild(preview);
+    } else {
+      // 여러 행: 전체 직사각형
+      preview = document.createElement('div');
+      preview.style.cssText = `position:absolute; top:${sH*DAY_CELL_H}px; left:0; right:0; height:${(eH-sH+1)*DAY_CELL_H}px; background:rgba(100,160,100,0.18); border:2px dashed #6aaa6a; border-radius:5px; pointer-events:none; z-index:20; box-sizing:border-box;`;
+      gridWrap.appendChild(preview);
+    }
+  }
+
+  gridWrap.addEventListener('mousedown', e => {
     if (e.button !== 0) return;
     e.preventDefault();
-    const rect = cellCol.getBoundingClientRect();
-    dmDragStart = Math.floor((e.clientY - rect.top) / DAY_CELL_H);
+    const {h, c} = slotFromEvent(e);
+    dmDragStartHour = h; dmDragStartCol = c;
+    dmDragEndHour = h; dmDragEndCol = c;
     dmDragging = true;
+    updatePreview();
   });
-  cellCol.addEventListener('mousemove', e => {
+
+  gridWrap.addEventListener('mousemove', e => {
     if (!dmDragging || e.buttons !== 1) return;
-    e.preventDefault();
-    const rect = cellCol.getBoundingClientRect();
-    const cur = Math.floor((e.clientY - rect.top) / DAY_CELL_H);
-    const s = Math.min(dmDragStart, cur);
-    const en = Math.max(dmDragStart, cur);
-    if (dmDragPreview) dmDragPreview.remove();
-    dmDragPreview = document.createElement('div');
-    dmDragPreview.className = 'day-tg-drag-preview';
-    dmDragPreview.style.cssText = `top:${s*DAY_CELL_H}px; height:${(en-s+1)*DAY_CELL_H}px;`;
-    cellCol.appendChild(dmDragPreview);
+    const {h, c} = slotFromEvent(e);
+    dmDragEndHour = h; dmDragEndCol = c;
+    updatePreview();
   });
-  cellCol.addEventListener('mouseup', e => {
+
+  gridWrap.addEventListener('mouseup', e => {
     if (!dmDragging) return;
-    if (dmDragPreview) { dmDragPreview.remove(); dmDragPreview = null; }
+    if (preview) { preview.remove(); preview = null; }
     dmDragging = false;
-    const rect = cellCol.getBoundingClientRect();
-    const cur = Math.floor((e.clientY - rect.top) / DAY_CELL_H);
-    const s = Math.min(dmDragStart, cur);
-    const en = Math.max(dmDragStart, cur);
-    dmDragStart = -1;
-    if (s < 0 || en >= TOTAL_SLOTS) return;
-    pendingBlock = { dateStr: dmDateStr, startCell: s, endCell: en, isDayModal: true };
+    const {h, c} = slotFromEvent(e);
+    dmDragEndHour = h; dmDragEndCol = c;
+
+    const s = slotToIndex(dmDragStartHour, dmDragStartCol);
+    const e2 = slotToIndex(h, c);
+    const sIdx = Math.min(s, e2);
+    const eIdx = Math.max(s, e2);
+    const sH = Math.floor(sIdx / DAY_COLS);
+    const sC = sIdx % DAY_COLS;
+    const eH = Math.floor(eIdx / DAY_COLS);
+    const eC = eIdx % DAY_COLS;
+
+    dmDragStartHour = -1; dmDragStartCol = -1;
+    pendingBlock = { dateStr: dmDateStr, startHour: sH, startCol: sC, endHour: eH, endCol: eC, isDayModal: true };
     openBlockModal();
   });
-  cellCol.addEventListener('mouseleave', () => {
-    if (dmDragPreview) { dmDragPreview.remove(); dmDragPreview = null; }
+
+  gridWrap.addEventListener('mouseleave', () => {
+    if (preview) { preview.remove(); preview = null; }
     dmDragging = false;
   });
-  cellCol.addEventListener('contextmenu', e => e.preventDefault());
+  gridWrap.addEventListener('contextmenu', e => e.preventDefault());
 
-  tg.appendChild(cellCol);
+  wrap.appendChild(gridWrap);
+  tg.appendChild(wrap);
 }
 
-function addDayBlock(col, block, bi) {
+function addDayBlock(gridWrap, block, bi) {
+  // 새 형식: {startHour, startCol, endHour, endCol, color, label}
+  // 구형 형식(startCell) 호환
+  let sH, sC, eH, eC;
+  if (block.startHour !== undefined) {
+    sH = block.startHour; sC = block.startCol;
+    eH = block.endHour;   eC = block.endCol;
+  } else {
+    // 구형: startCell 기반 → 변환
+    sH = Math.floor(block.startCell / DAY_COLS);
+    sC = block.startCell % DAY_COLS;
+    eH = Math.floor(block.endCell / DAY_COLS);
+    eC = block.endCell % DAY_COLS;
+  }
+
+  const totalStartMin = sH * 60 + sC * 10;
+  const totalEndMin   = eH * 60 + (eC + 1) * 10;
+  const dur = totalEndMin - totalStartMin;
+  const timeLabel = dur <= 0 ? '' : (dur < 60 ? dur+'분' : Math.floor(dur/60)+'h'+(dur%60?dur%60+'m':''));
+
+  // 그리드 안에서 position:absolute 블록
+  // 여러 행에 걸치면 전체 직사각형 (left:0 right:0)
+  const rect_placeholder = gridWrap.getBoundingClientRect();
+  const colW_pct = 100 / DAY_COLS;
+
   const el = document.createElement('div');
-  el.className = 'day-tg-block';
-  const startMin = block.startCell * 10;
-  const endMin = (block.endCell + 1) * 10;
-  const dur = endMin - startMin;
-  const timeLabel = dur < 60 ? `${dur}분` : `${Math.floor(dur/60)}h${dur%60?dur%60+'m':''}`;
-  el.style.cssText = `top:${block.startCell*DAY_CELL_H}px; height:${(block.endCell-block.startCell+1)*DAY_CELL_H}px; background:${block.color}22; color:${block.color}; border-left:3px solid ${block.color};`;
-  el.innerHTML = `<span>${block.label||''} <small style="opacity:0.65">${timeLabel}</small></span><span class="dblock-del" onclick="deleteDayBlock(${bi},event)">✕</span>`;
-  col.appendChild(el);
+  el.style.cssText = `
+    position:absolute;
+    top:${sH * DAY_CELL_H}px;
+    left:${sH === eH ? sC * colW_pct + '%' : '0'};
+    width:${sH === eH ? (eC - sC + 1) * colW_pct + '%' : '100%'};
+    height:${(eH - sH + 1) * DAY_CELL_H}px;
+    background:${block.color}28;
+    border-left:3px solid ${block.color};
+    border-radius:4px;
+    padding:2px 5px;
+    font-size:0.68rem; font-weight:600;
+    color:${block.color};
+    overflow:hidden; cursor:pointer; z-index:5;
+    box-sizing:border-box;
+  `;
+  el.innerHTML = `<span>${block.label||''} <small style="opacity:0.65;font-weight:400">${timeLabel}</small></span><span class="dblock-del" onclick="deleteDayBlock(${bi},event)" style="position:absolute;top:1px;right:3px;font-size:0.6rem;opacity:0;background:rgba(0,0,0,0.15);border-radius:3px;padding:0 2px;cursor:pointer;">✕</span>`;
+  el.addEventListener('mouseenter', () => el.querySelector('.dblock-del').style.opacity = '1');
+  el.addEventListener('mouseleave', () => el.querySelector('.dblock-del').style.opacity = '0');
+  gridWrap.appendChild(el);
 }
 
 function deleteDayBlock(bi, e) {
