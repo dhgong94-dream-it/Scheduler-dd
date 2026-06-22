@@ -717,180 +717,252 @@ body {
 /* ── DAY MODAL ── */
 .day-modal-backdrop {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.75);
+  background: rgba(0,0,0,0.55);
   z-index: 500; display: none;
   align-items: center; justify-content: center;
   padding: 20px;
 }
 .day-modal-backdrop.open { display: flex; }
+
 .day-modal {
-  background: var(--bg2);
-  border: 1px solid var(--border2);
-  border-radius: var(--radius-lg);
-  width: 100%; max-width: 920px;
-  max-height: 90vh;
+  background: #f5f3ee;
+  border-radius: 20px;
+  width: 100%; max-width: 1040px;
+  max-height: 92vh;
   display: flex; flex-direction: column;
-  box-shadow: var(--shadow);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.25);
   overflow: hidden;
 }
+
+/* 헤더 */
 .day-modal-head {
-  padding: 20px 24px 14px;
-  border-bottom: 1px solid var(--border);
+  padding: 28px 32px 20px;
+  background: #f5f3ee;
   display: flex; align-items: flex-start; justify-content: space-between;
   flex-shrink: 0;
 }
 .day-modal-title {
-  font-size: 2rem; font-weight: 800;
-  letter-spacing: -0.03em; font-style: italic; color: var(--text);
+  font-size: 2.4rem; font-weight: 900;
+  letter-spacing: -0.04em; font-style: italic;
+  color: #1a1a1a;
 }
-.day-modal-date { font-size: 0.82rem; color: var(--text3); margin-top: 4px; letter-spacing: 0.05em; }
+.day-modal-date {
+  font-size: 0.8rem; color: #888; margin-top: 5px;
+  letter-spacing: 0.08em; font-weight: 500;
+}
 .day-modal-close {
-  background: none; border: none; color: var(--text3);
-  font-size: 1.3rem; cursor: pointer; padding: 4px;
-  border-radius: 6px; transition: all 0.15s; line-height: 1;
+  background: none; border: none; color: #999;
+  font-size: 1.4rem; cursor: pointer; padding: 4px 8px;
+  border-radius: 8px; transition: all 0.15s; line-height: 1;
 }
-.day-modal-close:hover { background: var(--bg3); color: var(--text); }
+.day-modal-close:hover { background: #e8e5df; color: #333; }
+
+/* 바디 */
 .day-modal-body {
-  display: grid; grid-template-columns: 400px 1fr;
+  display: grid; grid-template-columns: 1fr 1fr;
   flex: 1; overflow: hidden;
+  background: #f5f3ee;
 }
+
+/* ── 왼쪽: 타임트래커 ── */
 .day-tracker-col {
-  border-right: 1px solid var(--border);
-  overflow-y: auto; padding: 12px 0;
+  border-right: 1px solid #ddd9d0;
+  overflow-y: auto; padding: 0 0 16px;
+  background: #f5f3ee;
 }
 .day-tracker-header {
-  display: flex; align-items: center; gap: 8px;
-  padding: 0 12px 8px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 20px 10px; flex-wrap: wrap;
+  position: sticky; top: 0;
+  background: #f5f3ee; z-index: 10;
+  padding-top: 4px;
 }
 .day-tracker-title {
-  font-size: 0.72rem; font-weight: 700;
-  letter-spacing: 0.08em; text-transform: uppercase; color: var(--text2); flex:1;
+  font-size: 0.72rem; font-weight: 800;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: #444; flex: 1;
 }
 .btn-clear-day {
-  background: none; border: 1px solid var(--border);
-  border-radius: 6px; padding: 3px 9px;
-  color: var(--text3); font-size: 0.7rem; cursor: pointer; transition: all 0.15s;
+  background: #ffe8e8; border: none;
+  border-radius: 20px; padding: 4px 12px;
+  color: #e05555; font-size: 0.72rem; font-weight: 600;
+  cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 4px;
 }
-.btn-clear-day:hover { color: var(--red); border-color: var(--red); }
-.day-tracker-hint { font-size: 0.68rem; color: var(--text3); padding: 0 12px 6px; }
+.btn-clear-day:hover { background: #ffd0d0; }
+.day-tracker-hint {
+  font-size: 0.68rem; color: #aaa;
+  padding: 0 20px 10px;
+}
+
+/* 타임 그리드 */
 .day-tg { display: flex; position: relative; }
-.day-tg-time {
-  font-size: 0.66rem; color: var(--text3); text-align: right;
-  padding: 2px 6px 0 0; height: 36px;
-  border-bottom: 1px solid var(--border);
-  display: flex; align-items: flex-start;
-  position: relative; top: -6px; user-select: none;
-}
-.day-tg-cell-col { position: relative; }
+
+.day-tg-cell-col { position: relative; flex: 1; }
 .day-tg-cell {
-  height: 16px; border-bottom: 1px solid rgba(255,255,255,0.03);
-  cursor: crosshair; transition: background 0.06s; user-select:none;
+  height: 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  cursor: crosshair; transition: background 0.06s; user-select: none;
 }
-.day-tg-cell:hover { background: rgba(124,106,247,0.07); }
+.day-tg-cell:hover { background: rgba(100,160,100,0.08); }
+
+/* 정시 구분선 */
+.day-tg-cell.hour-start {
+  border-top: 1px solid #ddd9d0;
+}
+
 .day-tg-block {
   position: absolute; left: 2px; right: 2px;
-  border-radius: 5px; padding: 2px 6px;
-  font-size: 0.68rem; font-weight: 500;
+  border-radius: 4px; padding: 2px 6px;
+  font-size: 0.68rem; font-weight: 600;
   overflow: hidden; cursor: pointer; z-index: 5;
 }
 .day-tg-block .dblock-del {
   position: absolute; top: 1px; right: 3px;
   font-size: 0.6rem; opacity: 0; cursor: pointer;
-  background: rgba(0,0,0,0.35); border-radius: 3px; padding: 0 2px;
+  background: rgba(0,0,0,0.2); border-radius: 3px; padding: 0 2px;
+  color: #333;
 }
 .day-tg-block:hover .dblock-del { opacity: 1; }
 .day-tg-drag-preview {
-  position: absolute; left: 2px; right: 2px; border-radius: 5px;
-  background: var(--accent-soft); border: 2px dashed var(--accent);
+  position: absolute; left: 2px; right: 2px; border-radius: 4px;
+  background: rgba(100,160,100,0.15);
+  border: 2px dashed #6aaa6a;
   z-index: 20; pointer-events: none;
 }
 .day-current-line {
   position: absolute; left: 0; right: 0; height: 2px;
-  background: var(--red); z-index: 15; pointer-events: none;
+  background: #e05555; z-index: 15; pointer-events: none;
 }
 .day-current-line::before {
   content: ''; position: absolute; left: -4px; top: -4px;
-  width: 10px; height: 10px; border-radius: 50%; background: var(--red);
+  width: 10px; height: 10px; border-radius: 50%; background: #e05555;
 }
-.day-right-col { display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── 오른쪽 ── */
+.day-right-col {
+  display: flex; flex-direction: column;
+  overflow: hidden; background: #f5f3ee;
+}
+
+/* 할 일 섹션 */
 .day-todo-section {
-  padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  padding: 16px 20px;
+  flex-shrink: 0;
 }
-.day-todo-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-.day-todo-count { font-size: 0.82rem; color: var(--text2); flex: 1; }
-.day-todo-count span { color: var(--text); font-weight: 600; }
+.day-todo-card {
+  background: #eaf4ec;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.day-todo-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 0;
+}
+.day-todo-icon {
+  width: 22px; height: 22px; border-radius: 6px;
+  background: #5bb85d; display: flex; align-items: center;
+  justify-content: center; color: #fff; font-size: 0.75rem; flex-shrink: 0;
+}
+.day-todo-count { font-size: 0.85rem; color: #333; flex: 1; font-weight: 500; }
+.day-todo-count span { font-weight: 700; }
 .btn-add-todo-day {
-  background: var(--green); border: none; border-radius: 8px;
-  padding: 5px 12px; color: #fff; font-size: 0.76rem; font-weight: 600;
+  background: #3d8b3f; border: none; border-radius: 20px;
+  padding: 6px 14px; color: #fff; font-size: 0.76rem; font-weight: 700;
   cursor: pointer; transition: background 0.15s;
 }
-.btn-add-todo-day:hover { background: #2db87a; }
+.btn-add-todo-day:hover { background: #2e6b30; }
 .btn-fold {
-  background: none; border: 1px solid var(--border); border-radius: 6px;
-  padding: 4px 9px; color: var(--text3); font-size: 0.73rem;
+  background: none; border: 1px solid #b5d4b6; border-radius: 20px;
+  padding: 5px 11px; color: #5a8a5c; font-size: 0.73rem; font-weight: 600;
   cursor: pointer; transition: all 0.15s;
 }
-.btn-fold:hover { background: var(--bg3); color: var(--text); }
-.day-todo-input-row { display: flex; gap: 6px; margin-bottom: 6px; }
-.day-todo-list { max-height: 150px; overflow-y: auto; }
+.btn-fold:hover { background: #dceedd; }
+.day-todo-input-row { display: flex; gap: 6px; margin: 10px 0 6px; }
+.day-todo-input-row .todo-input {
+  background: #fff; border-color: #c8dfc9;
+  color: #333;
+}
+.day-todo-input-row .todo-input::placeholder { color: #aaa; }
+.day-todo-input-row .todo-input:focus { border-color: #5bb85d; }
+.day-todo-input-row .btn-icon { background: #3d8b3f; }
+
+.day-todo-list { max-height: 140px; overflow-y: auto; margin-top: 8px; }
 .day-todo-item {
   display: flex; align-items: center; gap: 8px;
-  padding: 5px 6px; border-radius: 7px; cursor: pointer; transition: background 0.12s;
+  padding: 5px 4px; border-radius: 7px; cursor: pointer; transition: background 0.12s;
 }
-.day-todo-item:hover { background: var(--bg3); }
-.day-todo-item.done { opacity: 0.45; }
+.day-todo-item:hover { background: rgba(0,0,0,0.04); }
+.day-todo-item.done { opacity: 0.5; }
 .day-todo-item.done .day-todo-text { text-decoration: line-through; }
 .day-todo-check {
-  width: 16px; height: 16px; border-radius: 50%;
-  border: 1.5px solid var(--border2); flex-shrink: 0;
+  width: 17px; height: 17px; border-radius: 50%;
+  border: 1.5px solid #b5d4b6; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.58rem; transition: all 0.15s;
+  font-size: 0.6rem; transition: all 0.15s; color: #fff;
 }
-.day-todo-item.done .day-todo-check { background: var(--green); border-color: var(--green); color: #fff; }
-.day-todo-text { font-size: 0.8rem; flex: 1; }
+.day-todo-item.done .day-todo-check { background: #5bb85d; border-color: #5bb85d; }
+.day-todo-text { font-size: 0.82rem; flex: 1; color: #333; }
 .day-todo-del {
   opacity: 0; background: none; border: none;
-  color: var(--red); cursor: pointer; font-size: 0.82rem;
+  color: #e05555; cursor: pointer; font-size: 0.82rem;
 }
 .day-todo-item:hover .day-todo-del { opacity: 1; }
+
+/* 메모 탭 */
 .day-memo-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .day-memo-tabs {
-  display: flex; border-bottom: 1px solid var(--border);
-  padding: 0 16px; flex-shrink: 0;
+  display: flex; gap: 0;
+  padding: 0 20px;
+  flex-shrink: 0; margin-top: 4px;
 }
 .day-memo-tab {
-  background: none; border: none; padding: 10px 12px;
-  font-size: 0.8rem; color: var(--text3); cursor: pointer;
-  border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s;
+  background: none; border: none; padding: 10px 4px;
+  font-size: 0.82rem; color: #aaa; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: all 0.15s; margin-right: 16px; font-weight: 500;
 }
-.day-memo-tab.active { color: var(--text); border-bottom-color: var(--accent); }
-.day-memo-tab:hover:not(.active) { color: var(--text2); }
-.day-memo-content { flex: 1; overflow-y: auto; padding: 14px 16px; }
+.day-memo-tab.active { color: #333; border-bottom-color: #5bb85d; }
+.day-memo-tab:hover:not(.active) { color: #666; }
+
+.day-memo-content { flex: 1; overflow-y: auto; padding: 14px 20px; }
 .day-memo-textarea {
-  width: 100%; min-height: 220px; background: transparent; border: none; outline: none;
-  color: var(--text); font-size: 0.87rem; line-height: 1.75; resize: none; font-family: inherit;
+  width: 100%; min-height: 220px; background: transparent;
+  border: none; outline: none;
+  color: #333; font-size: 0.88rem; line-height: 1.8;
+  resize: none; font-family: inherit;
 }
-.day-memo-textarea::placeholder { color: var(--text3); }
+.day-memo-textarea::placeholder { color: #bbb; }
+
 .kpt-section { margin-bottom: 14px; }
 .kpt-label {
-  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
-  text-transform: uppercase; margin-bottom: 5px; display: block;
+  font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em;
+  text-transform: uppercase; margin-bottom: 6px; display: block;
 }
-.kpt-keep { color: var(--green); }
-.kpt-problem { color: var(--red); }
-.kpt-try { color: var(--accent); }
+.kpt-keep { color: #3d8b3f; }
+.kpt-problem { color: #c0392b; }
+.kpt-try { color: #2980b9; }
 .kpt-textarea {
-  width: 100%; min-height: 68px; background: var(--bg3);
-  border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px;
-  color: var(--text); font-size: 0.82rem; line-height: 1.6;
+  width: 100%; min-height: 72px;
+  background: #fff; border: 1px solid #ddd9d0;
+  border-radius: 10px; padding: 10px 14px;
+  color: #333; font-size: 0.83rem; line-height: 1.65;
   resize: none; outline: none; font-family: inherit; transition: border 0.15s;
 }
-.kpt-textarea:focus { border-color: var(--accent); }
-.kpt-textarea::placeholder { color: var(--text3); }
+.kpt-textarea:focus { border-color: #5bb85d; }
+.kpt-textarea::placeholder { color: #bbb; }
+
 .day-memo-save {
   display: flex; justify-content: flex-end; gap: 8px;
-  padding: 10px 16px; border-top: 1px solid var(--border); flex-shrink: 0;
+  padding: 12px 20px; flex-shrink: 0;
 }
+.day-memo-save .btn-cancel {
+  background: #e8e5df; border: none; color: #666;
+}
+.day-memo-save .btn-cancel:hover { background: #ddd9d0; }
+.day-memo-save .btn-save {
+  background: #3d8b3f; border: none;
+}
+.day-memo-save .btn-save:hover { background: #2e6b30; }
 
 /* Habit page placeholder */
 .empty-state {
@@ -1150,18 +1222,21 @@ body {
       <div class="day-right-col">
         <!-- Todo -->
         <div class="day-todo-section">
-          <div class="day-todo-header">
-            <div class="day-todo-count">✅ 오늘 할 일 (<span id="dm-todo-count">0</span>개 남음)</div>
-            <button class="btn-add-todo-day" onclick="toggleDmTodoInput()">+ 일정 추가</button>
-            <button class="btn-fold" id="dm-fold-btn" onclick="toggleDmTodoList()">접기 ▲</button>
-          </div>
-          <div id="dm-todo-input-wrap" style="display:none;">
-            <div class="day-todo-input-row">
-              <input class="todo-input" id="dm-todo-input" placeholder="할 일 추가..." onkeydown="if(event.key==='Enter')addDmTodo()">
-              <button class="btn-icon" onclick="addDmTodo()">+</button>
+          <div class="day-todo-card">
+            <div class="day-todo-header">
+              <div class="day-todo-icon">✓</div>
+              <div class="day-todo-count">오늘 할 일 (<span id="dm-todo-count">0</span>개 남음)</div>
+              <button class="btn-add-todo-day" onclick="toggleDmTodoInput()">+ 일정 추가</button>
+              <button class="btn-fold" id="dm-fold-btn" onclick="toggleDmTodoList()">접기 ▲</button>
             </div>
+            <div id="dm-todo-input-wrap" style="display:none;">
+              <div class="day-todo-input-row">
+                <input class="todo-input" id="dm-todo-input" placeholder="할 일 추가..." onkeydown="if(event.key==='Enter')addDmTodo()">
+                <button class="btn-icon" onclick="addDmTodo()">+</button>
+              </div>
+            </div>
+            <div class="day-todo-list" id="dm-todo-list"></div>
           </div>
-          <div class="day-todo-list" id="dm-todo-list"></div>
         </div>
         <!-- Memo tabs -->
         <div class="day-memo-section">
@@ -2241,7 +2316,7 @@ function renderDayTg() {
   timeCol.style.cssText = 'width:38px; flex-shrink:0;';
   for (let slot = 0; slot < TOTAL_SLOTS; slot++) {
     const cell = document.createElement('div');
-    cell.style.cssText = `height:${DAY_CELL_H}px; text-align:right; padding:0 5px 0 0; font-size:0.62rem; color:var(--text3); line-height:${DAY_CELL_H}px; user-select:none; border-top: ${slot%SLOTS_PER_HOUR===0 ? '1px solid var(--border2)' : 'none'};`;
+    cell.style.cssText = `height:${DAY_CELL_H}px; text-align:right; padding:0 8px 0 0; font-size:0.62rem; color:#999; line-height:${DAY_CELL_H}px; user-select:none; border-top: ${slot%SLOTS_PER_HOUR===0 ? '1px solid #ddd9d0' : 'none'};`;
     if (slot % SLOTS_PER_HOUR === 0) {
       const h = slot / SLOTS_PER_HOUR;
       cell.textContent = h === 0 ? '' : String(h).padStart(2,'0') + ':00';
