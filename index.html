@@ -130,11 +130,7 @@ body {
 .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ── MAIN CONTENT ── */
-.main {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 24px 20px;
-}
+.main { display: none; }
 
 .page { display: none; }
 .page.active { display: block; }
@@ -280,8 +276,9 @@ body {
 .cal-grid-month {
   background: var(--bg2);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   overflow: hidden;
+  flex: 1;
 }
 .cal-dow-row {
   display: grid; grid-template-columns: repeat(7, 1fr);
@@ -296,12 +293,12 @@ body {
   display: grid; grid-template-columns: repeat(7, 1fr);
 }
 .cal-cell {
-  min-height: 110px; padding: 8px;
+  min-height: 100px; padding: 6px 8px;
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   cursor: pointer; transition: background 0.12s;
 }
-.cal-cell:nth-child(7n) { border-right: none; }
+.cal-cell:nth-child(8n) { border-right: none; }
 .cal-cell:hover { background: var(--bg3); }
 .cal-cell.other-month .cal-day-num { color: var(--text3); }
 .cal-cell.today { background: var(--accent-soft); }
@@ -973,10 +970,233 @@ body {
 .empty-state p { font-size: 0.85rem; }
 
 @media (max-width: 900px) {
-  .calendar-layout { grid-template-columns: 1fr; }
-  .tracker-layout { grid-template-columns: 1fr; }
-  .nav-tabs { display: none; }
+  #app-layout { grid-template-columns: 1fr; }
+  #right-sidebar { display: none; }
 }
+
+/* ══════════════════════════════════════
+   새 메인 레이아웃
+══════════════════════════════════════ */
+#app { display:none; height:100vh; overflow:hidden; }
+
+#app-layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* ── 캘린더 영역 ── */
+#cal-area {
+  display: flex; flex-direction: column;
+  overflow: hidden; height: 100vh;
+}
+
+.cal-top-bar {
+  flex-shrink: 0;
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+.cal-user-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+
+.user-name-badge {
+  font-weight: 700; font-size: 0.95rem;
+  color: var(--text);
+}
+
+/* 필터 태그 */
+.filter-row {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 10px; flex-wrap: wrap;
+}
+.filter-label {
+  font-size: 0.72rem; color: var(--text3);
+  font-weight: 600; letter-spacing: 0.05em;
+  margin-right: 4px;
+}
+.filter-tag {
+  padding: 4px 14px; border-radius: 20px;
+  border: 1px solid var(--border);
+  font-size: 0.78rem; cursor: pointer;
+  background: transparent; color: var(--text2);
+  transition: all 0.15s;
+}
+.filter-tag:hover { background: var(--bg3); color: var(--text); }
+.filter-tag.active {
+  background: var(--bg3); color: var(--text);
+  border-color: var(--border2);
+}
+.filter-tag[data-cat]:not([data-cat="all"]).active {
+  background: var(--bg, var(--bg));
+  color: var(--tc); background: var(--bg);
+  border-color: var(--tc);
+}
+
+/* 캘린더 컨트롤 */
+.cal-ctrl-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.cal-nav-btn {
+  background: none; border: none;
+  color: var(--text2); font-size: 0.9rem;
+  cursor: pointer; padding: 4px 6px;
+  border-radius: 6px; transition: background 0.15s;
+}
+.cal-nav-btn:hover { background: var(--bg3); }
+.cal-search-wrap {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px;
+  margin-left: 8px;
+}
+.cal-add-btn {
+  background: var(--accent); border: none;
+  border-radius: 20px; padding: 6px 16px;
+  color: #fff; font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; transition: background 0.15s; margin-left: 8px;
+}
+.cal-add-btn:hover { background: var(--accent2); }
+
+/* 캘린더 그리드 */
+#page-calendar, #page-tracker {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+}
+
+/* WEEK 레이블 컬럼 추가 */
+.cal-dow-row {
+  display: grid;
+  grid-template-columns: 36px repeat(7, 1fr) !important;
+}
+.cal-dow-week {
+  font-size: 0.62rem; color: var(--text3);
+  writing-mode: horizontal-tb;
+  text-align: center; padding: 8px 0;
+  font-weight: 600; letter-spacing: 0.05em;
+}
+.cal-days {
+  display: grid;
+  grid-template-columns: 36px repeat(7, 1fr) !important;
+}
+
+/* 주차 셀 */
+.cal-week-label {
+  font-size: 0.6rem; color: var(--text3);
+  writing-mode: vertical-rl;
+  text-align: center;
+  display: flex; align-items: center; justify-content: center;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  letter-spacing: 0.08em; font-weight: 600;
+  cursor: default; padding: 4px 0;
+}
+
+/* 이벤트 스타일 - 체크박스 포함 */
+.cal-event {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.72rem; padding: 2px 6px;
+  border-radius: 4px; margin-bottom: 2px;
+  cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cal-event-check {
+  width: 13px; height: 13px; border-radius: 3px;
+  border: 1.5px solid currentColor; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.55rem; transition: all 0.12s;
+}
+.cal-event.done .cal-event-check { background: currentColor; }
+.cal-event.done .cal-event-check::after { content: '✓'; color: #fff; }
+.cal-event.done .cal-event-title { text-decoration: line-through; opacity: 0.6; }
+.cal-event-title { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── 오른쪽 사이드바 ── */
+#right-sidebar {
+  display: flex; flex-direction: column; gap: 0;
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  overflow-y: auto; height: 100vh;
+  padding: 16px 12px;
+  gap: 12px;
+}
+
+/* 원형 타이머 */
+.circle-timer-wrap {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto;
+  width: 140px; height: 140px;
+}
+.circle-timer-svg {
+  width: 140px; height: 140px;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+}
+.timer-display {
+  position: absolute;
+  font-size: 1.1rem !important;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  font-family: 'Courier New', monospace;
+}
+
+/* 링크 버튼 */
+.link-btn {
+  background: none; border: none;
+  color: var(--text3); font-size: 0.75rem;
+  cursor: pointer; text-decoration: underline;
+  transition: color 0.15s;
+}
+.link-btn:hover { color: var(--text2); }
+
+/* 할 일 아이템 새 스타일 */
+.todo-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 6px; border-radius: 8px;
+  cursor: pointer; transition: background 0.12s;
+}
+.todo-item:hover { background: var(--bg3); }
+.todo-drag-handle {
+  color: var(--text3); font-size: 0.8rem; cursor: grab;
+}
+
+/* 카테고리 색상 도트 */
+.cat-dot {
+  width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;
+}
+.cat-dot.default { background: var(--accent); }
+.cat-dot.work    { background: var(--green); }
+.cat-dot.personal{ background: var(--amber); }
+.cat-dot.health  { background: var(--red); }
+
+/* 검색 하이라이트 */
+.cal-event mark {
+  background: rgba(245,166,35,0.3); border-radius: 2px; color: inherit;
+}
+
+
+/* ── 페이지 전환 ── */
+#cal-area .page { display: none; flex: 1; overflow-y: auto; }
+#cal-area .page.active { display: flex; flex-direction: column; }
+#page-calendar.active { display: block; overflow-y: auto; flex: 1; }
+#page-tracker.active { display: block; overflow-y: auto; flex: 1; }
+
+/* cal-grid-month flex fill */
+#page-calendar { display: flex; flex-direction: column; }
+.cal-grid-month { flex: 1; }
+
+/* 오늘 셀 배경 */
+.cal-cell.today { background: rgba(62,207,142,0.06); }
+
+/* 토/일 컬럼 색 */
+.cal-dow:first-child, .cal-dow:last-child { color: var(--red) !important; }
 </style>
 </head>
 <body>
@@ -1004,88 +1224,79 @@ body {
 
 <!-- App -->
 <div id="app">
-  <nav class="topnav">
-    <span class="nav-brand">My Workspace</span>
-    <div class="nav-tabs">
-      <button class="nav-tab active" onclick="switchPage('calendar', this)">📅 캘린더</button>
-      <button class="nav-tab" onclick="switchPage('tracker', this)">⏱ 타임트래커</button>
-      <button class="nav-tab" onclick="switchPage('habit', this)">🔥 해빗</button>
-    </div>
-    <div class="user-avatar" id="user-avatar" onclick="showUserMenu()" title="로그아웃">
-      <span id="user-initials">?</span>
-    </div>
-  </nav>
+  <!-- ── 새 메인 레이아웃 ── -->
+  <div id="app-layout">
 
-  <div class="main">
-    <!-- CALENDAR PAGE -->
-    <div class="page active" id="page-calendar">
-      <div class="calendar-layout">
-        <!-- Sidebar -->
-        <div style="display: flex; flex-direction: column; gap: 14px;">
-          <!-- Mini Calendar -->
-          <div class="sidebar-panel">
-            <div class="mini-cal-header">
-              <button class="mini-cal-nav" onclick="miniCalPrev()">‹</button>
-              <span class="mini-cal-month" id="mini-cal-month"></span>
-              <button class="mini-cal-nav" onclick="miniCalNext()">›</button>
-            </div>
-            <div class="mini-cal-grid" id="mini-cal-grid"></div>
-          </div>
+    <!-- 왼쪽: 캘린더 영역 -->
+    <div id="cal-area">
 
-          <!-- Today's Todos -->
-          <div class="sidebar-panel">
-            <div class="panel-title">오늘 할 일</div>
-            <div class="todo-input-row">
-              <input class="todo-input" id="todo-input" placeholder="할 일 추가..." onkeydown="if(event.key==='Enter')addTodo()">
-              <button class="btn-icon" onclick="addTodo()">+</button>
+      <!-- 사용자 헤더 -->
+      <div class="cal-top-bar">
+        <div class="cal-user-row">
+          <div class="user-name-badge" id="user-name-badge">님 👋</div>
+          <div style="display:flex;gap:8px;align-items:center;margin-left:auto;">
+            <button class="nav-tab active" onclick="switchPage('calendar',this)" id="tab-cal">📅 캘린더</button>
+            <button class="nav-tab" onclick="switchPage('tracker',this)" id="tab-tracker">⏱ 타임트래커</button>
+            <div class="user-avatar" id="user-avatar" onclick="showUserMenu()" title="설정">
+              <span id="user-initials">?</span>
             </div>
-            <div class="todo-list" id="todo-list"></div>
           </div>
         </div>
 
-        <!-- Calendar Main -->
-        <div>
-          <div class="cal-header">
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <button class="btn-sm" onclick="calNav(-1)">‹</button>
-              <h2 class="cal-title" id="cal-title"></h2>
-              <button class="btn-sm" onclick="calNav(1)">›</button>
-              <button class="btn-sm" onclick="goToday()">오늘</button>
-            </div>
-            <div class="cal-controls">
-              <div class="cal-view-tabs">
-                <button class="view-tab active" onclick="switchCalView('month', this)">월</button>
-                <button class="view-tab" onclick="switchCalView('week', this)">주</button>
-              </div>
-              <button class="btn-sm primary" onclick="openEventModal()">+ 일정 추가</button>
-            </div>
-          </div>
+        <!-- 필터 태그 -->
+        <div class="filter-row" id="filter-row">
+          <span class="filter-label">FILTER:</span>
+          <button class="filter-tag active" data-cat="all" onclick="filterCal(this)">전체보기</button>
+          <button class="filter-tag" data-cat="default" onclick="filterCal(this)" style="--tc:#7c6af7;--bg:rgba(124,106,247,0.12)">기본</button>
+          <button class="filter-tag" data-cat="work" onclick="filterCal(this)" style="--tc:#3ecf8e;--bg:rgba(62,207,142,0.12)">업무</button>
+          <button class="filter-tag" data-cat="personal" onclick="filterCal(this)" style="--tc:#f5a623;--bg:rgba(245,166,35,0.12)">개인</button>
+          <button class="filter-tag" data-cat="health" onclick="filterCal(this)" style="--tc:#f26b6b;--bg:rgba(242,107,107,0.12)">건강</button>
+        </div>
 
-          <div id="cal-month-view">
-            <div class="cal-grid-month">
-              <div class="cal-dow-row">
-                <div class="cal-dow">일</div><div class="cal-dow">월</div>
-                <div class="cal-dow">화</div><div class="cal-dow">수</div>
-                <div class="cal-dow">목</div><div class="cal-dow">금</div>
-                <div class="cal-dow">토</div>
-              </div>
-              <div class="cal-days" id="cal-days"></div>
-            </div>
+        <!-- 캘린더 컨트롤 -->
+        <div class="cal-ctrl-row">
+          <button class="cal-nav-btn" onclick="calNav(-1)">◀</button>
+          <h2 class="cal-title" id="cal-title"></h2>
+          <button class="cal-nav-btn" onclick="calNav(1)">▶</button>
+          <div class="cal-search-wrap">
+            <span style="color:var(--text3);font-size:0.85rem;">🔍</span>
+            <input id="cal-search" placeholder="검색..." oninput="renderCalendar()" style="background:none;border:none;outline:none;color:var(--text);font-size:0.85rem;width:120px;">
           </div>
+          <button class="cal-add-btn" onclick="openEventModal()">+ 추가</button>
+          <button class="btn-sm" onclick="goToday()">오늘</button>
+          <button class="btn-sm" onclick="switchCalView('week',this)">위클리</button>
+        </div>
+      </div>
 
-          <div id="cal-week-view" style="display:none;">
-            <div class="cal-week">
-              <div class="week-header-row" id="week-header"></div>
-              <div class="week-body" id="week-body"></div>
+      <!-- 캘린더 페이지 -->
+      <div class="page active" id="page-calendar">
+        <!-- 월간 뷰 -->
+        <div id="cal-month-view">
+          <div class="cal-grid-month">
+            <div class="cal-dow-row">
+              <div class="cal-dow-week"></div>
+              <div class="cal-dow" style="color:var(--red)">일</div>
+              <div class="cal-dow">월</div>
+              <div class="cal-dow">화</div>
+              <div class="cal-dow">수</div>
+              <div class="cal-dow">목</div>
+              <div class="cal-dow">금</div>
+              <div class="cal-dow" style="color:var(--red)">토</div>
             </div>
+            <div class="cal-days" id="cal-days"></div>
+          </div>
+        </div>
+        <!-- 주간 뷰 -->
+        <div id="cal-week-view" style="display:none;">
+          <div class="cal-week">
+            <div class="week-header-row" id="week-header"></div>
+            <div class="week-body" id="week-body"></div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- TIMETRACKER PAGE -->
-    <div class="page" id="page-tracker">
-      <div class="tracker-layout">
+      <!-- 타임트래커 페이지 -->
+      <div class="page" id="page-tracker">
         <div class="time-grid-wrap">
           <div class="tg-header">
             <span class="tg-title">⏱ Time Tracker — <span id="tg-week-label"></span></span>
@@ -1094,53 +1305,64 @@ body {
           </div>
           <div class="time-grid" id="time-grid"></div>
         </div>
+      </div>
 
-        <!-- Right side -->
-        <div class="tracker-side">
-          <!-- Timer -->
-          <div class="timer-panel">
-            <div class="panel-title">타이머</div>
-            <div class="timer-display" id="timer-display">00:00:00</div>
-            <div class="timer-controls">
-              <button class="timer-btn start" id="timer-start-btn" onclick="timerToggle()">시작</button>
-              <button class="timer-btn stop" onclick="timerReset()">초기화</button>
-              <button class="timer-btn" onclick="timerRecord()">기록</button>
-            </div>
-          </div>
+    </div><!-- /cal-area -->
 
-          <!-- Synced Todo -->
-          <div class="tracker-todo">
-            <div class="panel-title" style="margin-bottom: 10px;">오늘 할 일 (캘린더 연동)</div>
-            <div id="synced-todo-list"></div>
-            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
-              <div class="todo-input-row">
-                <input class="todo-input" id="tracker-todo-input" placeholder="할 일 추가..." onkeydown="if(event.key==='Enter')addTodoFromTracker()">
-                <button class="btn-icon" onclick="addTodoFromTracker()">+</button>
-              </div>
-            </div>
-          </div>
+    <!-- 오른쪽: 사이드바 -->
+    <div id="right-sidebar">
 
-          <!-- Block color picker -->
-          <div class="sidebar-panel">
-            <div class="panel-title">블록 색상</div>
-            <div class="color-picker-row" id="color-picker"></div>
-            <div style="margin-top: 12px;">
-              <div class="form-label">레이블</div>
-              <input class="form-input" id="block-label-input" placeholder="예: 업무, 공부..." style="font-size: 0.82rem;">
-            </div>
+      <!-- 타이머 패널 -->
+      <div class="sidebar-panel" style="padding:20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <span style="font-weight:700;font-size:0.9rem;">타이머</span>
+          <div style="display:flex;gap:6px;align-items:center;font-size:0.75rem;color:var(--text2);">
+            <span>🕐 <span id="timer-elapsed-label">00:00:00</span></span>
+            <span>|</span>
+            <span>⏳ <span id="timer-target-label">00:00:00</span></span>
           </div>
         </div>
+        <!-- 원형 타이머 -->
+        <div class="circle-timer-wrap">
+          <svg class="circle-timer-svg" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="#f0ede8" stroke="#e0ddd8" stroke-width="2"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#3ecf8e" stroke-width="6"
+              stroke-dasharray="314" stroke-dashoffset="314"
+              stroke-linecap="round" transform="rotate(-90 60 60)"
+              id="timer-circle"/>
+            <text x="60" y="56" text-anchor="middle" font-size="9" fill="#999" font-family="inherit">0</text>
+            <text x="60" y="68" text-anchor="middle" font-size="9" fill="#999" font-family="inherit">30</text>
+            <text x="20" y="64" text-anchor="middle" font-size="9" fill="#999" font-family="inherit">45</text>
+            <text x="100" y="64" text-anchor="middle" font-size="9" fill="#999" font-family="inherit">15</text>
+          </svg>
+          <div class="timer-display" id="timer-display">00:00:00</div>
+        </div>
+        <div class="timer-controls" style="margin-top:14px;">
+          <button class="timer-btn start" id="timer-start-btn" onclick="timerToggle()">시작</button>
+          <button class="timer-btn stop" onclick="timerReset()">정지</button>
+          <button class="timer-btn" onclick="timerRecord()">기록</button>
+        </div>
+        <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;">
+          <button class="link-btn" onclick="timerReset()">초기화</button>
+          <button class="link-btn" onclick="timerReset()">완전 초기화</button>
+        </div>
       </div>
-    </div>
 
-    <!-- HABIT PAGE -->
-    <div class="page" id="page-habit">
-      <div class="empty-state">
-        <h3>🔥 해빗 트래커</h3>
-        <p>곧 추가될 예정입니다. 현재 캘린더와 타임트래커를 이용해보세요!</p>
+      <!-- 할 일 보관함 -->
+      <div class="sidebar-panel" style="flex:1;overflow:hidden;display:flex;flex-direction:column;padding:20px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span style="width:12px;height:12px;border-radius:50%;background:var(--amber);display:inline-block;"></span>
+          <span style="font-weight:700;font-size:0.88rem;">할 일 보관함</span>
+        </div>
+        <div class="todo-input-row" style="margin-bottom:10px;">
+          <input class="todo-input" id="todo-input" placeholder="+ 할 일 추가 (Enter)" onkeydown="if(event.key==='Enter')addTodo()" style="flex:1;">
+        </div>
+        <div class="todo-list" id="todo-list" style="flex:1;overflow-y:auto;"></div>
       </div>
-    </div>
-  </div>
+
+    </div><!-- /right-sidebar -->
+
+  </div><!-- /app-layout -->
 </div>
 
 <!-- Event Modal -->
@@ -1398,6 +1620,9 @@ auth.onAuthStateChanged(user => {
     const initials = (user.displayName || user.email || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     document.getElementById('user-initials').textContent = initials;
     document.getElementById('user-email-display').textContent = user.email;
+    const displayName = user.displayName || user.email?.split('@')[0] || '사용자';
+    const nameEl = document.getElementById('user-name-badge');
+    if (nameEl) nameEl.textContent = displayName + '님 👋';
     if (user.photoURL) {
       document.getElementById('user-avatar').innerHTML = `<img src="${user.photoURL}">`;
     }
@@ -1460,11 +1685,11 @@ function saveData() {
 // NAVIGATION
 // ============================================================
 function switchPage(page, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#cal-area .page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   if (btn) btn.classList.add('active');
-  if (page === 'tracker') { renderTimeGrid(); renderSyncedTodos(); }
+  if (page === 'tracker') { renderTimeGrid(); }
 }
 
 function switchCalView(view, btn) {
@@ -1485,13 +1710,12 @@ function calNav(dir) {
   renderCalendar();
 }
 
-function goToday() { calDate = new Date(); selectedDate = new Date(); renderCalendar(); renderMiniCal(); }
+function goToday() { calDate = new Date(); selectedDate = new Date(); renderCalendar(); }
 
 // ============================================================
 // RENDER ALL
 // ============================================================
 function renderAll() {
-  renderMiniCal();
   renderCalendar();
   renderTodos();
   renderColorPicker();
@@ -1505,8 +1729,10 @@ function miniCalPrev() { miniCalDate.setMonth(miniCalDate.getMonth() - 1); rende
 function miniCalNext() { miniCalDate.setMonth(miniCalDate.getMonth() + 1); renderMiniCal(); }
 
 function renderMiniCal() {
+  const mcEl = document.getElementById('mini-cal-month');
+  if (!mcEl) return;
   const y = miniCalDate.getFullYear(), m = miniCalDate.getMonth();
-  document.getElementById('mini-cal-month').textContent = `${y}년 ${m+1}월`;
+  mcEl.textContent = `${y}년 ${m+1}월`;
   const grid = document.getElementById('mini-cal-grid');
   grid.innerHTML = '';
   ['일','월','화','수','목','금','토'].forEach(d => {
@@ -1567,52 +1793,109 @@ function renderMonthView(y, m) {
   const last = new Date(y, m+1, 0).getDate();
   const today = new Date();
 
-  for (let i = 0; i < first; i++) {
-    const prev = new Date(y, m, -first+i+1);
-    addCalCell(days, prev, true, today);
+  // 주차별로 행 생성
+  let dayCount = 0;
+  let weekNum = 1;
+  const totalCells = first + last;
+  const totalRows = Math.ceil(totalCells / 7);
+
+  for (let row = 0; row < totalRows; row++) {
+    // WEEK 레이블 셀
+    const weekCell = document.createElement('div');
+    weekCell.className = 'cal-week-label';
+    weekCell.textContent = 'WEEK';
+    days.appendChild(weekCell);
+
+    for (let col = 0; col < 7; col++) {
+      const cellIdx = row * 7 + col;
+      const dayNum = cellIdx - first + 1;
+      if (dayNum < 1) {
+        const prev = new Date(y, m, dayNum);
+        addCalCell(days, prev, true, today);
+      } else if (dayNum > last) {
+        addCalCell(days, new Date(y, m+1, dayNum - last), true, today);
+      } else {
+        addCalCell(days, new Date(y, m, dayNum), false, today);
+      }
+    }
+    weekNum++;
   }
-  for (let d = 1; d <= last; d++) {
-    addCalCell(days, new Date(y, m, d), false, today);
-  }
-  const rem = (first + last) % 7;
-  if (rem > 0) for (let d = 1; d <= 7-rem; d++) addCalCell(days, new Date(y, m+1, d), true, today);
 }
 
 function addCalCell(container, date, other, today) {
   const cell = document.createElement('div');
   const dateStr = fmtDate(date);
+  const isToday = sameDay(date, today);
+  const isSun = date.getDay() === 0;
+  const isSat = date.getDay() === 6;
   let cls = 'cal-cell';
   if (other) cls += ' other-month';
-  if (sameDay(date, today)) cls += ' today';
+  if (isToday) cls += ' today';
   cell.className = cls;
-  cell.innerHTML = `<div class="cal-day-num">${date.getDate()}</div>`;
+
+  // 날짜 숫자
+  const numEl = document.createElement('div');
+  numEl.className = 'cal-day-num';
+  numEl.style.color = isSun || isSat ? 'var(--red)' : '';
+  if (isToday) {
+    numEl.innerHTML = `<span style="background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;">${date.getDate()}</span>`;
+  } else {
+    numEl.textContent = date.getDate();
+  }
+  cell.appendChild(numEl);
   cell.onclick = () => { selectedDate = date; openDayModal(dateStr); };
 
-  const dayEvents = events.filter(e => e.date === dateStr);
-  const dayTodos = todos.filter(t => t.date === dateStr && !t.done);
-  dayTodos.slice(0, 1).forEach(t => {
-    const ev = document.createElement('div');
-    ev.className = 'cal-event cat-todo';
-    ev.textContent = '☑ ' + t.text;
-    ev.onclick = (e) => { e.stopPropagation(); };
-    cell.appendChild(ev);
-  });
-  dayEvents.slice(0, 3).forEach(ev => {
+  // 검색어
+  const searchQ = (document.getElementById('cal-search')?.value || '').toLowerCase();
+  // 필터
+  const activeCat = document.querySelector('.filter-tag.active')?.dataset?.cat || 'all';
+
+  // 할일
+  const dayTodos = todos.filter(t => t.date === dateStr);
+  dayTodos.slice(0, 2).forEach(t => {
+    if (searchQ && !t.text.toLowerCase().includes(searchQ)) return;
     const el = document.createElement('div');
-    el.className = `cal-event cat-${ev.category || 'default'}`;
-    el.textContent = ev.title;
-    el.onclick = (e) => { e.stopPropagation(); openEventModal(dateStr, ev.id); };
-    el.oncontextmenu = (e) => { e.preventDefault(); showCtxMenu(e, ev.id); };
+    el.className = 'cal-event cat-todo' + (t.done ? ' done' : '');
+    el.innerHTML = `<div class="cal-event-check"></div><span class="cal-event-title">${highlight(t.text, searchQ)}</span>`;
+    el.onclick = e => { e.stopPropagation(); toggleTodo(t.id); renderCalendar(); };
     cell.appendChild(el);
   });
-  if (dayEvents.length > 3) {
+
+  // 이벤트
+  let dayEvents = events.filter(e => e.date === dateStr);
+  if (activeCat !== 'all') dayEvents = dayEvents.filter(e => (e.category||'default') === activeCat);
+  if (searchQ) dayEvents = dayEvents.filter(e => e.title.toLowerCase().includes(searchQ));
+
+  dayEvents.slice(0, 4).forEach(ev => {
+    const el = document.createElement('div');
+    el.className = `cal-event cat-${ev.category || 'default'}`;
+    el.innerHTML = `<div class="cal-event-check"></div><span class="cal-event-title">${highlight(ev.title, searchQ)}</span>`;
+    el.onclick = e => { e.stopPropagation(); openEventModal(dateStr, ev.id); };
+    el.oncontextmenu = e => { e.preventDefault(); showCtxMenu(e, ev.id); };
+    cell.appendChild(el);
+  });
+  if (dayEvents.length > 4) {
     const more = document.createElement('div');
-    more.className = 'cal-event';
-    more.style.opacity = '0.5';
-    more.textContent = `+${dayEvents.length - 3}개 더`;
+    more.style.cssText = 'font-size:0.68rem;color:var(--text3);padding:1px 6px;';
+    more.textContent = `+${dayEvents.length - 4}개 더`;
     cell.appendChild(more);
   }
   container.appendChild(cell);
+}
+
+function highlight(text, q) {
+  if (!q) return text;
+  const idx = text.toLowerCase().indexOf(q);
+  if (idx < 0) return text;
+  return text.slice(0,idx) + '<mark>' + text.slice(idx, idx+q.length) + '</mark>' + text.slice(idx+q.length);
+}
+
+let calFilter = 'all';
+function filterCal(btn) {
+  document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  calFilter = btn.dataset.cat;
+  renderCalendar();
 }
 
 function renderWeekView() {
@@ -1884,23 +2167,32 @@ function deleteTodo(id) {
 }
 
 function renderTodos() {
-  const today = fmtDate(new Date());
-  const todayTodos = todos.filter(t => t.date === today);
   const list = document.getElementById('todo-list');
+  if (!list) return;
+  // 전체 todos 최신순 (오늘 것 먼저)
+  const today = fmtDate(new Date());
+  const sorted = [...todos].sort((a,b) => {
+    if (a.date === today && b.date !== today) return -1;
+    if (b.date === today && a.date !== today) return 1;
+    return 0;
+  });
   list.innerHTML = '';
-  todayTodos.forEach(t => {
+  sorted.forEach(t => {
     const item = document.createElement('div');
     item.className = 'todo-item' + (t.done ? ' done' : '');
+    const catColor = {default:'var(--accent)',work:'var(--green)',personal:'var(--amber)',health:'var(--red)'}[t.category||'default'] || 'var(--accent)';
     item.innerHTML = `
-      <div class="todo-check">${t.done ? '' : ''}</div>
+      <span class="todo-drag-handle">≡</span>
+      <div class="todo-check">${t.done ? '<svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>' : ''}</div>
+      <span class="cat-dot ${t.category||'default'}"></span>
       <span class="todo-text">${t.text}</span>
       <button class="todo-del" onclick="event.stopPropagation(); deleteTodo('${t.id}')">✕</button>
     `;
-    item.onclick = () => toggleTodo(t.id);
+    item.onclick = () => { toggleTodo(t.id); renderTodos(); };
     list.appendChild(item);
   });
-  if (todayTodos.length === 0) {
-    list.innerHTML = '<div style="text-align:center; color: var(--text3); font-size: 0.8rem; padding: 12px;">오늘 할 일이 없어요 🎉</div>';
+  if (sorted.length === 0) {
+    list.innerHTML = '<div style="text-align:center; color: var(--text3); font-size: 0.8rem; padding: 16px;">할 일이 없어요 🎉</div>';
   }
 }
 
@@ -2192,6 +2484,15 @@ function updateTimerDisplay() {
   const m = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
   const s = String(timerSeconds % 60).padStart(2, '0');
   document.getElementById('timer-display').textContent = `${h}:${m}:${s}`;
+  const elLabel = document.getElementById('timer-elapsed-label');
+  if (elLabel) elLabel.textContent = `${h}:${m}:${s}`;
+  // 원형 타이머 업데이트 (60분 기준)
+  const circle = document.getElementById('timer-circle');
+  if (circle) {
+    const pct = (timerSeconds % 3600) / 3600;
+    const circumference = 314;
+    circle.style.strokeDashoffset = circumference - pct * circumference;
+  }
 }
 
 
