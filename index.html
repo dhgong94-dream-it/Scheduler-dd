@@ -1647,7 +1647,7 @@ function syncToCloud() {
             richMemoActiveId: localStorage.getItem('freeiaan_activeMemoTab') || ''
         };
 
-        db.collection("users").doc(currentUser.email).set(dataToSave)
+        db.collection("users").doc(currentUser.uid).set(dataToSave)
             .then(() => { 
                 console.log("Cloud Sync Success!"); 
                 isSyncing = false; 
@@ -2223,7 +2223,7 @@ function handleContextAdd() {
         // 📌 사용법 가이드(고정) 먼저 불러온 후, notice_history 렌더링
         db.collection('system').doc('pinnedGuide').get().then(pinnedDoc => {
             listContainer.innerHTML = '';
-            const _isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+            const _isAdmin = currentUser && currentUser.uid === ADMIN_EMAIL;
 
             // ── 고정 항목 렌더링 (데이터 있으면 모두에게, 없으면 관리자에게만) ──
             if (pinnedDoc.exists || _isAdmin) {
@@ -2387,7 +2387,7 @@ function handleContextAdd() {
         $('noticeContent').classList.remove('hidden');
         $('pinnedGuideEditWrap').classList.add('hidden');
         // 관리자만 편집 버튼 노출
-        const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+        const isAdmin = currentUser && currentUser.uid === ADMIN_EMAIL;
         $('pinnedGuideAdminBar').classList.toggle('hidden', !isAdmin);
         // 하단 버튼: 닫기
         const btn = $('noticeActionBtn');
@@ -2410,7 +2410,7 @@ function handleContextAdd() {
         $('pinnedGuideEditWrap').classList.add('hidden');
         $('noticeTitle').classList.remove('hidden');
         $('noticeContent').classList.remove('hidden');
-        const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+        const isAdmin = currentUser && currentUser.uid === ADMIN_EMAIL;
         $('pinnedGuideAdminBar').classList.toggle('hidden', !isAdmin);
     }
 
@@ -2439,7 +2439,7 @@ function loadFromCloud() {
 
     // (이름 바꿔치기 하는 코드는 깔끔하게 삭제했습니다!)
 
-    db.collection("users").doc(currentUser.email).get().then((doc) => {
+    db.collection("users").doc(currentUser.uid).get().then((doc) => {
         if (doc.exists) {
             const data = doc.data();
 
@@ -5734,7 +5734,7 @@ function renderCalendar() {
         if (dy > 80) { 
             pSpinner.style.top = '20px'; 
             if(currentUser) {
-                db.collection('users').doc(currentUser.email).get().then(doc => {
+                db.collection('users').doc(currentUser.uid).get().then(doc => {
                     if (doc.exists) {
                         const data = doc.data();
                         if(data.categories && data.categories.length > 0) categories = data.categories; 
@@ -5837,7 +5837,7 @@ function renderMemoFolders() {
         }
         
         // ✨ 이안님 요청 문구 + 유저의 진짜 이메일을 합성해서 띄워주는 마법!
-        $('feedbackWarningText').textContent = `접속하신 구글 이메일(${currentUser.email})이 함께 전송됩니다. 악의적인 비방 시 서비스 이용이 제한됩니다.`;
+        $('feedbackWarningText').textContent = `접속하신 구글 이메일(${currentUser.uid})이 함께 전송됩니다. 악의적인 비방 시 서비스 이용이 제한됩니다.`;
         
         $('feedbackContent').value = ''; // 창 열 때마다 내용 깔끔하게 비우기
         $('feedbackModal').classList.remove('hidden');
@@ -5866,7 +5866,7 @@ function renderMemoFolders() {
 
         // 파이어베이스로 보낼 택배 상자 포장
         const feedbackData = {
-            userEmail: currentUser.email,
+            userEmail: currentUser.uid,
             content: content,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             status: 'unread', // 나중에 이안님이 읽으면 상태가 바뀜!
@@ -6054,7 +6054,7 @@ function renderMemoFolders() {
         
         // orderBy를 빼서 파이어베이스 에러를 막고, 아래에서 직접 정렬합니다!
         db.collection('feedbacks')
-          .where('userEmail', '==', currentUser.email)
+          .where('userEmail', '==', currentUser.uid)
           .get().then(snapshot => {
             listContainer.innerHTML = '';
             if (snapshot.empty) {
@@ -6106,7 +6106,7 @@ function renderMemoFolders() {
     function checkNewReplies() {
         if (!currentUser) return;
         db.collection('feedbacks')
-          .where('userEmail', '==', currentUser.email)
+          .where('userEmail', '==', currentUser.uid)
           .where('status', 'in', ['read', 'replied'])
           .onSnapshot(snapshot => {
               if (!snapshot.empty) {
@@ -6878,8 +6878,8 @@ function renderMemoFolders() {
         keysToKeep.forEach(k => { if (savedValues[k]) localStorage.setItem(k, savedValues[k]); });
 
         // 2) Firestore 유저 데이터 초기화 (빈 객체로 덮어씌우기)
-        if (typeof currentUser !== 'undefined' && currentUser && currentUser.email) {
-            db.collection('users').doc(currentUser.email).set({
+        if (typeof currentUser !== 'undefined' && currentUser && currentUser.uid) {
+            db.collection('users').doc(currentUser.uid).set({
                 allTasks: {}, multiTasks: [], categories: [], trackerColors: {},
                 dailyRecords: {}, inboxTasks: [], repeatTasks: [],
                 weeklyMemos: {}, weeklyHabits: {}, extendedMemos: [],
