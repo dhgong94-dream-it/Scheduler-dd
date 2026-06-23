@@ -16,7 +16,7 @@
   --text:#1a1a1a; --text2:#555; --text3:#999;
   --accent:#3d6b3f; --accent2:#2e5430;
   --green:#3ecf8e; --red:#e05555; --amber:#f5a623; --purple:#7c6af7;
-  --sidebar-w:300px;
+  --sidebar-w:390px;
 }
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;height:100vh;overflow:hidden;}
 
@@ -32,14 +32,15 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .google-btn svg{width:20px;height:20px;}
 
 /* ══ APP LAYOUT ══ */
-#app{display:none;height:100vh;overflow:hidden;}
-#layout{display:grid;grid-template-columns:1fr var(--sidebar-w);height:100vh;}
+#app{display:none;height:100vh;overflow:hidden;background:var(--bg);}
+#app-outer{max-width:1440px;margin:0 auto;height:100vh;padding:0 32px;display:flex;flex-direction:column;}
+#layout{display:grid;grid-template-columns:1fr var(--sidebar-w);height:100vh;gap:20px;}
 
 /* ══ LEFT: CALENDAR AREA ══ */
-#cal-area{display:flex;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg2);}
+#cal-area{display:flex;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg2);border-radius:14px;border:1px solid var(--border);margin:20px 0;}
 
 /* Top bar */
-.topbar{flex-shrink:0;padding:14px 20px 10px;border-bottom:1px solid var(--border);background:var(--bg2);}
+.topbar{flex-shrink:0;padding:12px 20px 10px;border-bottom:1px solid var(--border);background:var(--bg2);border-radius:14px 14px 0 0;}
 .user-row{display:flex;align-items:center;margin-bottom:10px;}
 .user-name{font-weight:700;font-size:.95rem;color:var(--text);}
 .nav-tabs-right{display:flex;align-items:center;gap:6px;margin-left:auto;}
@@ -86,10 +87,10 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .dow-cell{text-align:center;padding:8px 0;font-size:.75rem;font-weight:700;color:var(--text2);letter-spacing:.03em;}
 .dow-cell.sun,.dow-cell.sat{color:var(--red);}
 
-.cal-rows{}
+.cal-rows{display:block;}
 .cal-row{display:grid;grid-template-columns:32px repeat(7,1fr);}
 .week-lbl{display:flex;align-items:center;justify-content:center;border-right:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg3);writing-mode:vertical-rl;font-size:.55rem;font-weight:700;color:var(--text3);letter-spacing:.08em;cursor:default;}
-.cal-cell{min-height:112px;padding:6px 7px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;vertical-align:top;}
+.cal-cell{aspect-ratio:1;padding:6px 7px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;overflow:hidden;min-height:0;}
 .cal-cell:hover{background:rgba(61,107,63,.04);}
 .cal-cell:last-child{border-right:none;}
 .cal-cell.other{background:var(--bg3);}
@@ -115,10 +116,10 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .ev-more{font-size:.68rem;color:var(--text3);padding:1px 6px;}
 
 /* ══ RIGHT SIDEBAR ══ */
-#sidebar{display:flex;flex-direction:column;height:100vh;background:var(--bg3);border-left:1px solid var(--border);overflow-y:auto;padding:16px 14px;gap:14px;}
+#sidebar{display:flex;flex-direction:column;height:calc(100vh - 40px);background:var(--bg3);border-radius:14px;border:1px solid var(--border);overflow-y:auto;padding:20px 16px;gap:14px;margin:20px 0;}
 
 /* Timer card */
-.timer-card{background:var(--bg2);border-radius:14px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+.timer-card{background:var(--bg2);border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .timer-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
 .timer-card-title{font-weight:700;font-size:.88rem;}
 .timer-meta{font-size:.72rem;color:var(--text3);display:flex;gap:8px;}
@@ -342,10 +343,11 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 </div>
 
 <div id="app">
+  <div id="app-outer">
   <div id="layout">
     <!-- LEFT -->
     <div id="cal-area">
-      <div class="topbar">
+      <div class="topbar" id="topbar">
         <div class="user-row">
           <span class="user-name" id="user-name">님 👋</span>
           <div class="nav-tabs-right">
@@ -473,6 +475,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
         <div class="todo-scroll" id="todo-list"></div>
       </div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -1271,6 +1274,17 @@ function toast(msg){ const w=$('toasts'),el=document.createElement('div'); el.cl
 // init
 renderCp();
 setInterval(()=>{ if(calView==='week') renderWeek(); },60000);
+
+// 타이머를 요일 헤더 라인에 맞춤
+function alignTimer(){
+  const tb=$('topbar'), sb=$('sidebar');
+  if(!tb||!sb) return;
+  const tbH=tb.getBoundingClientRect().height;
+  sb.style.paddingTop=tbH+'px';
+}
+window.addEventListener('load', alignTimer);
+window.addEventListener('resize', alignTimer);
+setTimeout(alignTimer, 300);
 </script>
 </body>
 </html>
